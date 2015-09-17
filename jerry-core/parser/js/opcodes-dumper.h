@@ -47,10 +47,31 @@ public:
    */
   jsp_operand_t (void)
   {
-#ifndef JERRY_NDEBUG
     _type = jsp_operand_t::UNINITIALIZED;
-#endif /* !JERRY_NDEBUG */
+    _is_to_be_freed = true;
   } /* jsp_operand_t */
+
+  jsp_operand_t (const jsp_operand_t &op) :
+  _data (op._data)
+  {
+    _type = op._type;
+    _is_to_be_freed = op._is_to_be_freed;
+
+    op._is_to_be_freed = false;
+  }
+
+  ~jsp_operand_t ();
+
+  jsp_operand_t& operator= (const jsp_operand_t &op)
+  {
+    _type = op._type;
+    _data = op._data;
+    _is_to_be_freed = op._is_to_be_freed;
+
+    op._is_to_be_freed = false;
+
+    return *this;
+  }
 
   /**
    * Construct empty operand
@@ -143,6 +164,17 @@ public:
 
     return ret;
   } /* make_reg_operand */
+
+  static jsp_operand_t
+  dup_operand (const jsp_operand_t &op)
+  {
+    jsp_operand_t op_copy;
+    op_copy._type = op._type;
+    op_copy._data = op._data;
+    op_copy._is_to_be_freed = false;
+
+    return op_copy;
+  }
 
   /**
    * Is it empty operand?
@@ -275,6 +307,7 @@ public:
 
     return _data.idx_const;
   } /* get_idx_const */
+
 private:
   union
   {
@@ -284,6 +317,7 @@ private:
   } _data;
 
   type_t _type; /**< type of operand */
+  mutable bool _is_to_be_freed; /**< flag, indicating if the operand was copied */
 };
 
 typedef enum __attr_packed___
@@ -300,7 +334,7 @@ jsp_operand_t empty_operand (void);
 jsp_operand_t literal_operand (lit_cpointer_t);
 jsp_operand_t eval_ret_operand (void);
 jsp_operand_t jsp_create_operand_for_in_special_reg (void);
-bool operand_is_empty (jsp_operand_t);
+bool operand_is_empty (jsp_operand_t &);
 
 void dumper_init (void);
 void dumper_free (void);

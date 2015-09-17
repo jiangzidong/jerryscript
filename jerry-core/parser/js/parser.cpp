@@ -1591,7 +1591,7 @@ parse_logical_and_expression (bool in_allowed)
   {
     tmp = dump_variable_assignment_res (expr);
     start_dumping_logical_and_checks ();
-    dump_logical_and_check_for_rewrite (tmp);
+    dump_logical_and_check_for_rewrite (jsp_operand_t::dup_operand (tmp));
   }
   else
   {
@@ -1602,11 +1602,11 @@ parse_logical_and_expression (bool in_allowed)
   {
     skip_newlines ();
     expr = parse_bitwise_or_expression (in_allowed);
-    dump_variable_assignment (tmp, expr);
+    dump_variable_assignment (jsp_operand_t::dup_operand (tmp), expr);
     skip_newlines ();
     if (token_is (TOK_DOUBLE_AND))
     {
-      dump_logical_and_check_for_rewrite (tmp);
+      dump_logical_and_check_for_rewrite (jsp_operand_t::dup_operand (tmp));
     }
   }
   lexer_save_token (tok);
@@ -1626,7 +1626,7 @@ parse_logical_or_expression (bool in_allowed)
   {
     tmp = dump_variable_assignment_res (expr);
     start_dumping_logical_or_checks ();
-    dump_logical_or_check_for_rewrite (tmp);
+    dump_logical_or_check_for_rewrite (jsp_operand_t::dup_operand (tmp));
   }
   else
   {
@@ -1637,11 +1637,11 @@ parse_logical_or_expression (bool in_allowed)
   {
     skip_newlines ();
     expr = parse_logical_and_expression (in_allowed);
-    dump_variable_assignment (tmp, expr);
+    dump_variable_assignment (jsp_operand_t::dup_operand (tmp), expr);
     skip_newlines ();
     if (token_is (TOK_DOUBLE_OR))
     {
-      dump_logical_or_check_for_rewrite (tmp);
+      dump_logical_or_check_for_rewrite (jsp_operand_t::dup_operand (tmp));
     }
   }
   lexer_save_token (tok);
@@ -2421,7 +2421,7 @@ parse_switch_statement (void)
       skip_newlines ();
       const jsp_operand_t case_expr = parse_expression (true, JSP_EVAL_RET_STORE_NOT_DUMP);
       next_token_must_be (TOK_COLON);
-      dump_case_clause_check_for_rewrite (switch_expr, case_expr);
+      dump_case_clause_check_for_rewrite (jsp_operand_t::dup_operand (switch_expr), case_expr);
       skip_newlines ();
       skip_case_clause_body ();
     }
