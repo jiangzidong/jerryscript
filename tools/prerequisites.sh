@@ -226,17 +226,6 @@ else
   mv $PREREQUISITES_INSTALLED_LIST_FILE $TMP_DIR/.prerequisites.prev
 fi
 
-setup_from_zip "stm32f3" \
-               "./third-party/STM32F3-Discovery_FW_V1.1.0" \
-               "http://www.st.com/st-web-ui/static/active/en/st_prod_software_internet/resource/technical/software/firmware/stm32f3discovery_fw.zip" \
-               "cf81efd07d627adb58adc20653eecb415878b6585310b77b0ca54a34837b3855" \
-               "STM32F3-Discovery_FW_V1.1.0/*"
-
-setup_from_zip "stm32f4" \
-               "./third-party/STM32F4-Discovery_FW_V1.1.0" \
-               "http://www.st.com/st-web-ui/static/active/en/st_prod_software_internet/resource/technical/software/firmware/stsw-stm32068.zip" \
-               "8e67f7b930c6c02bd7f89a266c8d1cae3b530510b7979fbfc0ee0d57e7f88b81" \
-               "STM32F4-Discovery_FW_V1.1.0/*"
 
 setup_cppcheck "cppcheck-1.69" \
                "./third-party/cppcheck" \
