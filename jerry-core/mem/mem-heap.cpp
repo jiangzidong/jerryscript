@@ -1020,6 +1020,8 @@ mem_heap_get_stats (mem_heap_stats_t *out_heap_stats_p) /**< out: heap stats */
 void
 mem_heap_stats_reset_peak (void)
 {
+  if (mem_file_flag)
+    printf("\t~~~HEAP RESET~~~\n");
   mem_heap_stats.peak_allocated_chunks = mem_heap_stats.allocated_chunks;
   mem_heap_stats.peak_allocated_bytes = mem_heap_stats.allocated_bytes;
   mem_heap_stats.peak_waste_bytes = mem_heap_stats.waste_bytes;
@@ -1028,9 +1030,12 @@ mem_heap_stats_reset_peak (void)
 /**
  * Initalize heap memory usage statistics account structure
  */
+
 static void
 mem_heap_stat_init ()
 {
+  if (mem_file_flag)
+    printf("\t~~~HEAP INIT~~~\n");
   memset (&mem_heap_stats, 0, sizeof (mem_heap_stats));
 
   mem_heap_stats.size = MEM_HEAP_AREA_SIZE;
@@ -1046,7 +1051,10 @@ mem_heap_stat_alloc (size_t first_chunk_index, /**< first chunk of the allocated
   const size_t chunks = chunks_num;
   const size_t bytes = (size_t) mem_heap_allocated_bytes[first_chunk_index];
   const size_t waste_bytes = chunks * MEM_HEAP_CHUNK_SIZE - bytes;
-
+  if (mem_file_flag) {
+    printf("\t~~~HEAP ALLOC~~~ chunk:%d, bytes:%d, waste:%d\n", chunks, bytes, waste_bytes);
+    fprintf(fp_mem, "HEAP %d\n", chunks);
+  }
   mem_heap_stats.allocated_chunks += chunks;
   mem_heap_stats.allocated_bytes += bytes;
   mem_heap_stats.waste_bytes += waste_bytes;
@@ -1092,7 +1100,10 @@ mem_heap_stat_free (size_t first_chunk_index, /**< first chunk of the freed area
   const size_t chunks = chunks_num;
   const size_t bytes = (size_t) mem_heap_allocated_bytes[first_chunk_index];
   const size_t waste_bytes = chunks * MEM_HEAP_CHUNK_SIZE - bytes;
-
+  if (mem_file_flag) {
+    printf("\t~~~HEAP FREE~~~ chunk:%d, bytes:%d, waste:%d\n", chunks, bytes, waste_bytes);
+    fprintf(fp_mem, "HEAP -%d\n", chunks);
+  }
   JERRY_ASSERT (mem_heap_stats.allocated_bytes <= mem_heap_stats.size);
   JERRY_ASSERT (mem_heap_stats.allocated_chunks <= mem_heap_stats.size / MEM_HEAP_CHUNK_SIZE);
 

@@ -31,13 +31,17 @@
  * The 'try to give memory back' callback
  */
 static mem_try_give_memory_back_callback_t mem_try_give_memory_back_callback = NULL;
-
+FILE* fp_mem;
 /**
  * Initialize memory allocators.
  */
 void
 mem_init (void)
 {
+  if (mem_file_flag) {
+    fp_mem = fopen("data.txt", "w");
+    fprintf(fp_mem, "CODE PARSE\n");
+  }
   mem_heap_init ();
   mem_pools_init ();
 } /* mem_init */
@@ -76,6 +80,8 @@ mem_finalize (bool is_show_mem_stats) /**< show heap memory stats
   }
 
   mem_heap_finalize ();
+  if (mem_file_flag)
+    fclose(fp_mem);
 } /* mem_finalize */
 
 /**

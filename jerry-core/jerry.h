@@ -21,6 +21,9 @@
 
 #include "jerry-api.h"
 
+
+extern FILE* fp_mem;
+extern int mem_file_flag;
 /** \addtogroup jerry Jerry engine interface
  * @{
  */

@@ -37,6 +37,7 @@
 #define JERRY_STANDALONE_EXIT_CODE_FAIL (1)
 
 static uint8_t buffer[ JERRY_BUFFER_SIZE ];
+int mem_file_flag = 0;
 
 static const jerry_api_char_t *
 read_sources (const char *script_file_names[],
@@ -237,6 +238,10 @@ main (int argc,
     else if (!strcmp ("--mem-stats-per-opcode", argv[i]))
     {
       flags |= JERRY_FLAG_MEM_STATS_PER_OPCODE;
+    }
+    else if (!strcmp ("--mem-file", argv[i]))
+    {
+      mem_file_flag = 1;
     }
     else if (!strcmp ("--mem-stats-separate", argv[i]))
     {

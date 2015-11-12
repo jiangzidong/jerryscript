@@ -654,6 +654,9 @@ mem_pools_get_stats (mem_pools_stats_t *out_pools_stats_p) /**< out: pools' stat
 void
 mem_pools_stats_reset_peak (void)
 {
+  if (mem_file_flag) {
+    printf("\t~~~POOL RESET~~~\n");
+  }
   mem_pools_stats.peak_pools_count = mem_pools_stats.pools_count;
   mem_pools_stats.peak_allocated_chunks = mem_pools_stats.allocated_chunks;
 } /* mem_pools_stats_reset_peak */
@@ -664,6 +667,9 @@ mem_pools_stats_reset_peak (void)
 static void
 mem_pools_stat_init (void)
 {
+  if (mem_file_flag) {
+    printf("\t~~~POOL INIT~~~\n");
+  }
   memset (&mem_pools_stats, 0, sizeof (mem_pools_stats));
 } /* mem_pools_stat_init */
 
@@ -673,6 +679,10 @@ mem_pools_stat_init (void)
 static void
 mem_pools_stat_alloc_pool (void)
 {
+  if (mem_file_flag) {
+    printf("\t~~~POOL ALLOC POOL~~~\n");
+    fprintf(fp_mem, "POOL 1\n");
+  }
   mem_pools_stats.pools_count++;
 
   if (mem_pools_stats.pools_count > mem_pools_stats.peak_pools_count)
@@ -693,6 +703,10 @@ mem_pools_stat_alloc_pool (void)
 static void
 mem_pools_stat_free_pool (void)
 {
+  if (mem_file_flag) {
+    printf("\t~~~POOL FREE POOL~~~\n");
+    fprintf(fp_mem, "POOL -1\n");
+  }
   JERRY_ASSERT (mem_pools_stats.free_chunks >= MEM_POOL_CHUNKS_NUMBER);
 
   mem_pools_stats.free_chunks -= MEM_POOL_CHUNKS_NUMBER;
@@ -708,6 +722,10 @@ mem_pools_stat_free_pool (void)
 static void
 mem_pools_stat_alloc_chunk (void)
 {
+  if (mem_file_flag) {
+    printf("\t~~~POOL ALLOC CHUNK~~~\n");
+    fprintf(fp_mem, "CHUNK 1\n");
+  }
   JERRY_ASSERT (mem_pools_stats.free_chunks > 0);
 
   mem_pools_stats.allocated_chunks++;
@@ -729,6 +747,10 @@ mem_pools_stat_alloc_chunk (void)
 static void
 mem_pools_stat_free_chunk (void)
 {
+  if (mem_file_flag) {
+    printf("\t~~~POOL FREE CHUNK~~~\n");
+    fprintf(fp_mem, "CHUNK -1\n");
+  }
   JERRY_ASSERT (mem_pools_stats.allocated_chunks > 0);
 
   mem_pools_stats.allocated_chunks--;
