@@ -373,12 +373,12 @@ void
 lit_literal_storage_t::dump ()
 {
   printf ("LITERALS:\n");
-
+  size_t total_record_size = 0;
   for (rcs_record_t *rec_p = lit_storage.get_first (); rec_p != NULL; rec_p = lit_storage.get_next (rec_p))
   {
     printf ("%p ", rec_p);
     printf ("[%3zu] ", get_record_size (rec_p));
-
+    total_record_size = total_record_size + get_record_size (rec_p);
     switch (rec_p->get_type ())
     {
       case LIT_STR:
@@ -443,7 +443,13 @@ lit_literal_storage_t::dump ()
     }
 
     printf ("\n");
+
   }
+    printf("literal size:\n");
+    printf (" record size: %zu\n"
+          " chunked list size: %zu\n",
+          total_record_size,
+          total_record_size/60*64);
 } /* lit_literal_storage_t::dump */
 
 /**
