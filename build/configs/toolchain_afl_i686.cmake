@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+include(CMakeForceCompiler)
+
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR i686)
 
-find_program(CMAKE_C_COMPILER NAMES i686-linux-gnu-gcc i686-unknown-linux-gnu-gcc)
-find_program(CMAKE_CXX_COMPILER NAMES i686-linux-gnu-g++ i686-unknown-linux-gnu-g++)
-# FIXME: This could break cross compilation, when the strip is not for the target architecture
-find_program(CMAKE_STRIP NAMES i686-linux-gnu-strip i686-unknown-linux-gnu-strip strip)
+CMAKE_FORCE_C_COMPILER(afl-gcc GNU)
+CMAKE_FORCE_CXX_COMPILER(afl-g++ GNU)

@@ -1,4 +1,5 @@
-// Copyright 2014 Samsung Electronics Co., Ltd.
+// Copyright 2015 Samsung Electronics Co., Ltd.
+// Copyright 2015 University of Szeged.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var a = new Number(123.5);
-assert (typeof Object(a) === 'object');
+function f(a, b) {
+  return {
+    a: a,
+    b: b
+  };
+}
+
+var o = f('1', '2');
+
+assert(o.a == '1');
+assert(o.b == '2');

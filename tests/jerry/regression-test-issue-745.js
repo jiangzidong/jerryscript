@@ -1,4 +1,4 @@
-// Copyright 2014 Samsung Electronics Co., Ltd.
+// Copyright 2015 Samsung Electronics Co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var a = new Number(123.5);
-assert (typeof Object(a) === 'object');
+try {
+  eval("7E9.");
+  assert(false);
+} catch (e) {
+  assert(e instanceof SyntaxError);
+}
+
+assert(7E9.toString() === "7000000000");

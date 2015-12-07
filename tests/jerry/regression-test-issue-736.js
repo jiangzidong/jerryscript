@@ -1,4 +1,4 @@
-// Copyright 2014 Samsung Electronics Co., Ltd.
+// Copyright 2015 Samsung Electronics Co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var a = new Number(123.5);
-assert (typeof Object(a) === 'object');
+var code = 'try\n\
+{\n\
+  print({toStSing:!function() { throw new TypeError("foo"); }}, []);t (false);\n\
+}\n\
+catch (e)\n\
+{\n\
+  assert*(e instanceof\n\
+  assert );\n\
+  asstrt (e.a%e === "foo");\n\
+}';
+
+try {
+  eval(code);
+  assert(false);
+} catch(e) {
+  assert(e instanceof TypeError);
+}
+
+try {
+  eval("var x; x instanceof assert;");
+  assert(false);
+} catch(e) {
+  assert(e instanceof TypeError);
+}
+
