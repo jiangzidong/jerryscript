@@ -105,7 +105,10 @@ rcs_chunked_list_t::node_t*
 rcs_chunked_list_t::append_new (void)
 {
   assert_list_is_correct ();
-
+  if (mem_file_flag) {
+    printf("\t~~~Chunked_list APPEND node~~~\n");
+    fprintf(fp_mem, "CL 1\n");
+  }
   node_t *node_p = (node_t*) mem_heap_alloc_chunked_block (MEM_HEAP_ALLOC_LONG_TERM);
 
   set_prev (node_p, tail_p);
@@ -141,7 +144,10 @@ rcs_chunked_list_t::node_t*
 rcs_chunked_list_t::insert_new (rcs_chunked_list_t::node_t* after_p) /**< the node to insert the new node after */
 {
   assert_list_is_correct ();
-
+  if (mem_file_flag) {
+    printf("\t~~~Chunked_list INSERT node~~~\n");
+    fprintf(fp_mem, "CL 1\n");
+  }
   node_t *node_p = (node_t*) mem_heap_alloc_chunked_block (MEM_HEAP_ALLOC_LONG_TERM);
 
   JERRY_ASSERT (head_p != NULL);
@@ -196,7 +202,10 @@ rcs_chunked_list_t::remove (rcs_chunked_list_t::node_t* node_p) /**< node to rem
   {
     set_prev (next_node_p, prev_node_p);
   }
-
+  if (mem_file_flag) {
+    printf("\t~~~Chunked_list REMOVE node~~~\n");
+    fprintf(fp_mem, "CL -1\n");
+  }
   mem_heap_free_block (node_p);
 
   assert_list_is_correct ();

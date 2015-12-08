@@ -679,10 +679,6 @@ mem_pools_stat_init (void)
 static void
 mem_pools_stat_alloc_pool (void)
 {
-  if (mem_file_flag) {
-    printf("\t~~~POOL ALLOC POOL~~~\n");
-    fprintf(fp_mem, "POOL 1\n");
-  }
   mem_pools_stats.pools_count++;
 
   if (mem_pools_stats.pools_count > mem_pools_stats.peak_pools_count)
@@ -703,10 +699,6 @@ mem_pools_stat_alloc_pool (void)
 static void
 mem_pools_stat_free_pool (void)
 {
-  if (mem_file_flag) {
-    printf("\t~~~POOL FREE POOL~~~\n");
-    fprintf(fp_mem, "POOL -1\n");
-  }
   JERRY_ASSERT (mem_pools_stats.free_chunks >= MEM_POOL_CHUNKS_NUMBER);
 
   mem_pools_stats.free_chunks -= MEM_POOL_CHUNKS_NUMBER;

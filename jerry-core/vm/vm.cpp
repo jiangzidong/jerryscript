@@ -256,8 +256,7 @@ interp_mem_stats_opcode_enter (const vm_instr_t *instrs_p,
 
   printf ("%s-- Opcode: %s (position %u) --\n",
           indent_prefix, __op_names[instr.op_idx], (uint32_t) instr_position);
-  if (mem_file_flag)
-    fprintf(fp_mem, "CODE [%u]%s\n", (uint32_t) instr_position, __op_names[instr.op_idx]);
+
   interp_mem_stats_print_indentation += INTERP_MEM_PRINT_INDENTATION_STEP;
 }
 
@@ -541,6 +540,8 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p, /**< interpreter context */
                                      instr_pos,
                                      &heap_stats_before,
                                      &pools_stats_before);
+  if (mem_file_flag)
+    fprintf(fp_mem, "CODE [%u]%s\n", (uint32_t) instr_pos, __op_names[curr->op_idx]);
 #endif /* MEM_STATS */
 
       completion = __opfuncs[curr->op_idx] (*curr, frame_ctx_p);
