@@ -16,7 +16,7 @@
 #include "array-list.h"
 #include "jrt-libc-includes.h"
 #include "jsp-mm.h"
-
+#include "mem-config.h"
 typedef struct
 {
   uint8_t element_size;
@@ -47,10 +47,16 @@ array_list_append (array_list al, void *element)
     size_t size = jsp_mm_recommend_size (h->size + h->element_size);
     JERRY_ASSERT (size > h->size);
 
+  if(mem_file_flag) {
+    printf ("\t~~~AL REALLOC: %d -> %d~~~\n", h->size, size);
+    fprintf(fp_mem, "AL %d\n", JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE);   
+  }
     uint8_t *new_block_p = (uint8_t *) jsp_mm_alloc (size);
     memcpy (new_block_p, h, h->size);
     memset (new_block_p + h->size, 0, size - h->size);
-
+  if(mem_file_flag) {
+       fprintf(fp_mem, "AL -%d\n", JERRY_ALIGNUP (h->size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE);   
+  }
     jsp_mm_free (h);
 
     h = (array_list_header *) new_block_p;
@@ -112,6 +118,10 @@ array_list
 array_list_init (uint8_t element_size)
 {
   size_t size = jsp_mm_recommend_size (sizeof (array_list_header));
+  if(mem_file_flag) {
+    printf ("\t~~~AL INIT: %d~~~\n", size);
+    fprintf(fp_mem, "AL %d\n", JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE);   
+  }
   array_list_header *header = (array_list_header *) jsp_mm_alloc (size);
   memset (header, 0, size);
   header->element_size = element_size;
@@ -131,5 +141,9 @@ void
 array_list_free (array_list al)
 {
   array_list_header *h = extract_header (al);
+  if(mem_file_flag) {
+    printf ("\t~~~AL FREE: %d\n", h->size);
+    fprintf(fp_mem, "AL -%d\n", JERRY_ALIGNUP (h->size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE);   
+  }
   jsp_mm_free (h);
 }

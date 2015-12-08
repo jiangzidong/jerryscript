@@ -2,17 +2,19 @@ import os
 import csv
 
 
-global_max = {'HEAP': 0, 'POOL': 0, 'CHUNK': 0}
-global_delta = {'HEAP': 0, 'POOL': 0, 'CHUNK': 0}
-local_max = {'HEAP': 0, 'POOL': 0, 'CHUNK': 0}
-local_delta = {'HEAP': 0, 'POOL': 0, 'CHUNK': 0}
-
-# result_columns = ['code_name', 'local_delta_HEAP', 'local_max_HEAP', 'global_delta_HEAP', 'global_max_HEAP',
-#                   'local_delta_POOL', 'local_max_POOL', 'global_delta_POOL', 'global_max_POOL',
-#                   'local_delta_CHUNK', 'local_max_CHUNK', 'global_delta_CHUNK', 'global_max_CHUNK']
+global_max = {}
+global_delta = {}
+local_max =  {}
+local_delta =  {}
 
 prefix_name = ["local_delta", "local_peak", "current", "peak"]
-memory_type = ["HEAP", "POOL", "CHUNK"]
+memory_type = ["HEAP", "CHUNK", "AL", "LL", "CL"]
+
+for i in memory_type:
+	global_max[i]=0;
+	global_delta[i]=0;
+	local_max[i]=0;
+	local_delta[i]=0;
 
 result_columns = ['code_name']
 result_columns.extend([x + '_' + y for y in memory_type for x in prefix_name])
@@ -26,8 +28,9 @@ for line_index in xrange(len(lines)):
     line = lines[line_index].strip()
     if line[:4] == 'CODE':
         codename = line[5:]
-        local_max = {'HEAP': 0, 'POOL': 0, 'CHUNK': 0}
-        local_delta = {'HEAP': 0, 'POOL': 0, 'CHUNK': 0}
+        for i in memory_type:
+            local_delta[i]=0;
+            local_max[i]=0;
         continue
     else:
         split_line = line.split()

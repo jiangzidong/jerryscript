@@ -16,7 +16,7 @@
 #include "jrt-libc-includes.h"
 #include "jsp-mm.h"
 #include "linked-list.h"
-
+#include "mem-config.h"
 /**
  * Header of a linked list's chunk
  */
@@ -69,7 +69,10 @@ linked_list_init (size_t element_size) /**< size of a linked list's element */
 {
   JERRY_ASSERT (element_size <= linked_list_block_size (true));
   size_t size = sizeof (linked_list_header) + sizeof (linked_list_chunk_header) + linked_list_block_size (true);
-
+  if(mem_file_flag) {
+    printf ("\t~~~LL INIT: %d~~~\n", size);
+    fprintf(fp_mem, "LL %d\n", JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE);   
+  }
   linked_list list = (linked_list) jsp_mm_alloc (size);
   JERRY_ASSERT (list != null_list);
 
@@ -100,7 +103,10 @@ linked_list_append_new_chunk (linked_list_header *header_p, /**< linked list's h
 
   JERRY_ASSERT (header_p->element_size <= linked_list_block_size (false));
   size_t size = sizeof (linked_list_chunk_header) + linked_list_block_size (false);
-
+  if(mem_file_flag) {
+    printf ("\t~~~LL APPEND: %d~~~\n", size);
+    fprintf(fp_mem, "LL %d\n", JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE);   
+  }
   linked_list_chunk_header *new_chunk_header_p = (linked_list_chunk_header *) jsp_mm_alloc (size);
   JERRY_ASSERT (new_chunk_header_p != NULL);
 
@@ -127,11 +133,18 @@ linked_list_free (linked_list list) /**< linked list's identifier */
   while (iter_p != NULL)
   {
     linked_list_chunk_header *iter_next_p = iter_p->next_p;
+  if(mem_file_flag) {
+    printf ("\t~~~LL FREE~~~\n");
+    fprintf(fp_mem, "LL -1\n");   
+  }
     jsp_mm_free (iter_p);
 
     iter_p = iter_next_p;
   }
-
+  if(mem_file_flag) {
+    printf ("\t~~~LL FREE~~~\n");
+    fprintf(fp_mem, "LL -1\n");   
+  }
   jsp_mm_free (header_p);
 } /* linked_list_free */
 
@@ -309,7 +322,10 @@ linked_list_remove_element (linked_list list, /**< linked list's identifier */
   if (list_chunk_iter_p != chunk_prev_to_chunk_with_last_elem_p)
   {
     JERRY_ASSERT (chunk_prev_to_chunk_with_last_elem_p->next_p == list_chunk_iter_p);
-
+  if(mem_file_flag) {
+    printf ("\t~~~LL SHRINK~~~\n");
+    fprintf(fp_mem, "LL -1\n");   
+  }
     jsp_mm_free (list_chunk_iter_p);
     chunk_prev_to_chunk_with_last_elem_p->next_p = NULL;
   }
