@@ -591,30 +591,12 @@ count_new_literals_in_instr (op_meta *om_p) /**< instruction */
   return (vm_idx_t) (next_uid - current_uid);
 } /* count_new_literals_in_instr */
 
-/**
- * Count slots needed for a scope's hash table
- *
- * Before filling literal indexes 'hash' table we shall initiate it with number of neccesary literal indexes.
- * Since bytecode is divided into blocks and id of the block is a part of hash key, we shall divide bytecode
- *  into blocks and count unique literal indexes used in each block.
- *
- * @return total number of literals in scope
- */
-size_t
+
+static size_t
 scopes_tree_count_literals_in_blocks (scopes_tree tree) /**< scope */
 {
   assert_tree (tree);
   size_t result = 0;
-
-  if (lit_id_to_uid != null_hash)
-  {
-    hash_table_free (lit_id_to_uid);
-    lit_id_to_uid = null_hash;
-  }
-  next_uid = 0;
-  global_oc = 0;
-
-  assert_tree (tree);
   vm_instr_counter_t instr_pos;
   bool header = true;
   for (instr_pos = 0; instr_pos < tree->instrs_count; instr_pos++)
@@ -629,6 +611,7 @@ scopes_tree_count_literals_in_blocks (scopes_tree tree) /**< scope */
       header = false;
     }
     result += count_new_literals_in_instr (om_p);
+    global_oc ++;
   }
 
   for (vm_instr_counter_t var_decl_pos = 0;
@@ -637,6 +620,7 @@ scopes_tree_count_literals_in_blocks (scopes_tree tree) /**< scope */
   {
     op_meta *om_p = extract_op_meta (tree->var_decls, var_decl_pos);
     result += count_new_literals_in_instr (om_p);
+    global_oc ++;
   }
 
   for (uint8_t child_id = 0; child_id < tree->t.children_num; child_id++)
@@ -648,10 +632,34 @@ scopes_tree_count_literals_in_blocks (scopes_tree tree) /**< scope */
   {
     op_meta *om_p = extract_op_meta (tree->instrs, instr_pos);
     result += count_new_literals_in_instr (om_p);
+    global_oc ++;
   }
 
   return result;
 } /* scopes_tree_count_literals_in_blocks */
+
+/**
+ * Count slots needed for a scope's hash table
+ *
+ * Before filling literal indexes 'hash' table we shall initiate it with number of neccesary literal indexes.
+ * Since bytecode is divided into blocks and id of the block is a part of hash key, we shall divide bytecode
+ *  into blocks and count unique literal indexes used in each block.
+ *
+ * @return total number of literals in scope
+ */
+size_t
+scopes_tree_count_literals (scopes_tree tree) /**< scope */
+{
+  assert_tree (tree);
+  if (lit_id_to_uid != null_hash)
+  {
+    hash_table_free (lit_id_to_uid);
+    lit_id_to_uid = null_hash;
+  }
+  next_uid = 0;
+  global_oc = 0;
+  return scopes_tree_count_literals_in_blocks (tree);
+} /* scopes_tree_count_literals */
 
 /*
  * This function performs functions hoisting.

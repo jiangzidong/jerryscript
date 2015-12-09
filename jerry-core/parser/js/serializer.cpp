@@ -148,7 +148,7 @@ serializer_dump_subscope (scopes_tree tree) /**< scope to dump */
 const bytecode_data_header_t *
 serializer_merge_scopes_into_bytecode (void)
 {
-  const size_t buckets_count = scopes_tree_count_literals_in_blocks (current_scope);
+  const size_t buckets_count = scopes_tree_count_literals (current_scope);
   const vm_instr_counter_t instrs_count = scopes_tree_count_instructions (current_scope);
   const size_t blocks_count = JERRY_ALIGNUP (instrs_count, BLOCK_SIZE) / BLOCK_SIZE;
 
