@@ -139,7 +139,7 @@ serializer_dump_subscope (scopes_tree tree) /**< scope to dump */
   }
 } /* serializer_dump_subscope */
 
-
+int is_first_flag = 1;
 /**
  * Merge scopes tree into bytecode
  *
@@ -156,7 +156,8 @@ serializer_merge_scopes_into_bytecode (void)
   const size_t hash_table_size = lit_id_hash_table_get_size_for_table (buckets_count, blocks_count);
   const size_t header_and_hash_table_size = JERRY_ALIGNUP (sizeof (bytecode_data_header_t) + hash_table_size,
                                                            MEM_ALIGNMENT);
-
+if(is_first_flag){
+is_first_flag = 0;
     printf ("Bytecode size:\n");
     printf (" Total size: %zu\n"
           " bytecode: %zu\n"
@@ -166,7 +167,7 @@ serializer_merge_scopes_into_bytecode (void)
           bytecode_size,
           hash_table_size,
           buckets_count);
-
+}
   uint8_t *buffer_p = (uint8_t*) mem_heap_alloc_block (bytecode_size + header_and_hash_table_size,
                                                        MEM_HEAP_ALLOC_LONG_TERM);
 
