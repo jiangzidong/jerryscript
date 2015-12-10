@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "jerry-api.h"
+#include "jerry-port.h"
 
 
 extern FILE* fp_mem;
