@@ -29,6 +29,7 @@ typedef enum
 } jsp_status_t;
 
 void parser_set_show_instrs (bool);
+void parser_set_show_mem_timeline(bool);
 jsp_status_t parser_parse_script (const jerry_api_char_t *, size_t, const bytecode_data_header_t **);
 jsp_status_t parser_parse_eval (const jerry_api_char_t *, size_t, bool, const bytecode_data_header_t **, bool *);
 

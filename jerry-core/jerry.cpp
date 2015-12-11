@@ -1498,7 +1498,7 @@ jerry_parse (const jerry_api_char_t* source_p, /**< script source */
   bool is_show_mem_timeline = ((jerry_flags & JERRY_FLAG_MEM_STATS_TIMELINE) != 0);
 
   parser_set_show_instrs (is_show_instructions);
-  parser_set_show_timeline (is_show_mem_timeline);
+  parser_set_show_mem_timeline (is_show_mem_timeline);
 
   const bytecode_data_header_t *bytecode_data_p;
   jsp_status_t parse_status;

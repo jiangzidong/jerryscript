@@ -190,5 +190,5 @@ mem_stats_timeline_print (const char* name)
   TL_PRINT ("%s\t%zu\t%zu\n",
               name,
               heap_stats.allocated_chunks,
-              peak_allocated_chunks);
+              heap_stats.peak_allocated_chunks);
 }
