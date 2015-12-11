@@ -50,6 +50,7 @@ static token tok;
 static bool inside_eval = false;
 static bool inside_function = false;
 static bool parser_show_instrs = false;
+static bool parser_show_mem_timeline = false;
 
 enum
 {
@@ -3333,6 +3334,10 @@ parser_parse_program (const jerry_api_char_t *source_p, /**< source code buffer 
 
     skip_newlines ();
 
+    if (parser_show_mem_timeline && !inside_eval) {
+      mem_stats_timeline_print("before_parser");
+      serializer_set_show_mem_timeline(true);
+    }
     /*
      * We don't try to perform replacement of local variables with registers for global code, eval code,
      * and code of dynamically constructed functions.
@@ -3414,7 +3419,10 @@ parser_parse_program (const jerry_api_char_t *source_p, /**< source code buffer 
 
   jsp_label_finalize ();
   jsp_mm_finalize ();
-
+  if (parser_show_mem_timeline && !inside_eval) {
+    mem_stats_timeline_print("parser_end");
+    serializer_set_show_mem_timeline(false);
+  }
   return status;
 } /* parser_parse_program */
 
@@ -3467,3 +3475,10 @@ parser_set_show_instrs (bool show_instrs) /**< flag indicating whether to dump b
 {
   parser_show_instrs = show_instrs;
 } /* parser_set_show_instrs */
+
+
+void
+parser_set_show_mem_timeline (bool show_timeline)
+{
+  parser_show_mem_timeline = show_timeline;
+}

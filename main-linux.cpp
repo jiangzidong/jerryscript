@@ -243,6 +243,10 @@ main (int argc,
     {
       flags |= JERRY_FLAG_MEM_STATS_SEPARATE;
     }
+    else if (!strcmp ("--mem-stats-timeline", argv[i]))
+    {
+      flags |= JERRY_FLAG_MEM_STATS_TIMELINE;
+    }
     else if (!strcmp ("--parse-only", argv[i]))
     {
       flags |= JERRY_FLAG_PARSE_ONLY;

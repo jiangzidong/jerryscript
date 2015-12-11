@@ -124,6 +124,7 @@ extern void mem_unregister_a_try_give_memory_back_callback (mem_try_give_memory_
 #ifdef MEM_STATS
 extern void mem_stats_reset_peak (void);
 extern void mem_stats_print (void);
+extern void mem_stats_timeline_print(const char*);
 #endif /* MEM_STATS */
 
 #endif /* !JERRY_MEM_ALLOCATOR_H */

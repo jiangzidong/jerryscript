@@ -1404,11 +1404,14 @@ jerry_init (jerry_flag_t flags) /**< combination of Jerry flags */
 #ifndef MEM_STATS
     flags &= ~(JERRY_FLAG_MEM_STATS
                | JERRY_FLAG_MEM_STATS_PER_OPCODE
-               | JERRY_FLAG_MEM_STATS_SEPARATE);
+               | JERRY_FLAG_MEM_STATS_SEPARATE
+               | JERRY_FLAG_MEM_STATS_TIMELINE);
 
     JERRY_WARNING_MSG ("Ignoring memory statistics option because of '!MEM_STATS' build configuration.\n");
 #else /* !MEM_STATS */
-    if (flags & (JERRY_FLAG_MEM_STATS_PER_OPCODE | JERRY_FLAG_MEM_STATS_SEPARATE))
+    if (flags & (JERRY_FLAG_MEM_STATS_PER_OPCODE
+                  | JERRY_FLAG_MEM_STATS_SEPARATE
+                  | JERRY_FLAG_MEM_STATS_TIMELINE))
     {
       flags |= JERRY_FLAG_MEM_STATS;
     }
@@ -1422,6 +1425,10 @@ jerry_init (jerry_flag_t flags) /**< combination of Jerry flags */
   mem_init ();
   serializer_init ();
   ecma_init ();
+
+  if (flags & JERRY_FLAG_MEM_STATS_TIMELINE) {
+    mem_stats_timeline_print("jerry_init");
+  }
 } /* jerry_init */
 
 /**
@@ -1488,8 +1495,10 @@ jerry_parse (const jerry_api_char_t* source_p, /**< script source */
   jerry_assert_api_available ();
 
   bool is_show_instructions = ((jerry_flags & JERRY_FLAG_SHOW_OPCODES) != 0);
+  bool is_show_mem_timeline = ((jerry_flags & JERRY_FLAG_MEM_STATS_TIMELINE) != 0);
 
   parser_set_show_instrs (is_show_instructions);
+  parser_set_show_timeline (is_show_mem_timeline);
 
   const bytecode_data_header_t *bytecode_data_p;
   jsp_status_t parse_status;

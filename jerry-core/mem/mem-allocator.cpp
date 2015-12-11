@@ -178,3 +178,17 @@ mem_stats_print (void)
           stats.peak_allocated_chunks);
 } /* mem_stats_print */
 #endif /* MEM_STATS */
+
+
+#define TL_PRINT(a,b,c,d) printf(a,b,c,d)
+
+void
+mem_stats_timeline_print (const char* name)
+{
+  mem_heap_stats_t heap_stats;
+  mem_heap_get_stats (&heap_stats);
+  TL_PRINT ("%s\t%zu\t%zu\n",
+              name,
+              heap_stats.allocated_chunks,
+              peak_allocated_chunks);
+}

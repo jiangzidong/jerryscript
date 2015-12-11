@@ -22,6 +22,7 @@
 #include "vm.h"
 #include "scopes-tree.h"
 
+void pp_op_mem_timeline (op_meta);
 void pp_op_meta (const bytecode_data_header_t *, vm_instr_counter_t, op_meta, bool);
 #endif // JERRY_ENABLE_PRETTY_PRINTER
 

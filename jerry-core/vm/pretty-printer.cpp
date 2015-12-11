@@ -23,6 +23,7 @@
 #include "ecma-globals.h"
 #include "serializer.h"
 #include "lit-literal.h"
+#include "mem-allocator.h"
 
 static const char* opcode_names[] =
 {
@@ -178,6 +179,12 @@ dump_asm (vm_instr_counter_t oc, vm_instr_t instr)
   {
     printf ("     ");
   }
+}
+
+void pp_op_mem_timeline (op_meta opm)
+{
+  uint8_t opcode_id = opm.op.op_idx;
+  mem_stats_timeline_print(opcode_names[opcode_id]);
 }
 
 void

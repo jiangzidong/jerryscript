@@ -42,6 +42,7 @@ typedef uint32_t jerry_flag_t;
                                                      *   FIXME: Remove. */
 #define JERRY_FLAG_ENABLE_LOG             (1u << 5) /**< enable logging */
 #define JERRY_FLAG_ABORT_ON_FAIL          (1u << 6) /**< abort instead of exit in case of failure */
+#define JERRY_FLAG_MEM_STATS_TIMELINE     (1u << 7)
 
 /**
  * Error codes

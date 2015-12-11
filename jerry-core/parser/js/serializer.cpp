@@ -20,9 +20,11 @@
 #include "array-list.h"
 #include "scopes-tree.h"
 
+
 static bytecode_data_header_t *first_bytecode_header_p;
 static scopes_tree current_scope;
 static bool print_instrs;
+static bool print_mem_timeline;
 
 static void
 serializer_print_instrs (const bytecode_data_header_t *);
@@ -198,6 +200,10 @@ serializer_dump_op_meta (op_meta op)
   {
     pp_op_meta (NULL, (vm_instr_counter_t) (scopes_tree_instrs_num (current_scope) - 1), op, false);
   }
+  if (print_mem_timeline)
+  {
+    pp_op_mem_timeline (op);
+  }
 #endif
 }
 
@@ -211,6 +217,12 @@ serializer_dump_var_decl (op_meta op) /**< variable declaration instruction */
                 + linked_list_get_length (current_scope->var_decls) < MAX_OPCODES);
 
   scopes_tree_add_var_decl (current_scope, op);
+#ifdef JERRY_ENABLE_PRETTY_PRINTER
+  if (print_mem_timeline)
+  {
+    pp_op_mem_timeline (op);
+  }
+#endif
 } /* serializer_dump_var_decl */
 
 vm_instr_counter_t
@@ -279,6 +291,11 @@ serializer_init ()
 void serializer_set_show_instrs (bool show_instrs)
 {
   print_instrs = show_instrs;
+}
+
+void serializer_set_show_mem_timeline (bool show_timeline)
+{
+  print_mem_timeline = show_timeline;
 }
 
 /**
