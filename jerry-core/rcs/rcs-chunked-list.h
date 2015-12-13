@@ -92,4 +92,15 @@ private:
  * @}
  */
 
+#ifdef MEM_STATS
+
+typedef struct
+{
+  size_t peak_allocated_chunks;
+  size_t allocated_chunks;
+} mem_cl_stats_t;
+
+extern void mem_cl_get_stats (mem_cl_stats_t *);
+#endif
+
 #endif /* RCS_CHUNKED_LIST_H */

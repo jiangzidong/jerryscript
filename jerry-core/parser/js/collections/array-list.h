@@ -31,4 +31,15 @@ void *array_list_last_element (array_list, size_t);
 void array_list_set_last_element (array_list, size_t, void *);
 size_t array_list_len (array_list);
 
+#ifdef MEM_STATS
+
+typedef struct
+{
+  size_t peak_allocated_chunks;
+  size_t allocated_chunks;
+} mem_al_stats_t;
+
+extern void mem_al_get_stats (mem_al_stats_t *);
+#endif
+
 #endif /* ARRAY_LIST_H */

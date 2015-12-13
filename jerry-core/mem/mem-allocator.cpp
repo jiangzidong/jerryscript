@@ -22,6 +22,9 @@
 #include "mem-allocator.h"
 #include "mem-heap.h"
 #include "mem-poolman.h"
+#include "array-list.h"
+#include "linked-list.h"
+#include "rcs-chunked-list.h"
 
 #define MEM_ALLOCATOR_INTERNAL
 
@@ -187,8 +190,20 @@ mem_stats_timeline_print (const char* name)
 {
   mem_heap_stats_t heap_stats;
   mem_heap_get_stats (&heap_stats);
-  TL_PRINT ("%s\t%zu\t%zu\n",
+  mem_pools_stats_t pool_stats;
+  mem_pools_get_stats (&pool_stats);
+  mem_al_stats_t al_stats;
+  mem_al_get_stats (&al_stats);
+  mem_cl_stats_t cl_stats;
+  mem_cl_get_stats (&cl_stats);
+  TL_PRINT ("%s %zu %zu %zu %zu %zu %zu %zu %zu\n",
               name,
               heap_stats.allocated_chunks,
-              heap_stats.peak_allocated_chunks);
+              heap_stats.peak_allocated_chunks,
+              pool_stats.allocated_chunks,
+              pool_stats.peak_allocated_chunks,
+              al_stats.allocated_chunks,
+              al_stats.peak_allocated_chunks,
+              cl_stats.allocated_chunks,
+              cl_stats.peak_allocated_chunks);
 }

@@ -15,6 +15,37 @@
 
 #include "rcs-chunked-list.h"
 
+#ifdef MEM_STATS
+mem_cl_stats_t mem_cl_stats;
+mem_cl_stats.peak_allocated_chunks = 0;
+mem_cl_stats.allocated_chunks = 0;
+void
+mem_cl_get_stats (mem_cl_stats_t *out_al_stats_p) /**< out: al' stats */
+{
+  JERRY_ASSERT (out_al_stats_p != NULL);
+
+  *out_al_stats_p = mem_cl_stats;
+} /* mem_pools_get_stats */
+
+#define MEM_CL_STAT_ALLOC() mem_cl_stat_alloc()
+#define MEM_CL_STAT_FREE() mem_cl_stat_free()
+
+static void mem_cl_stat_alloc (void)
+{
+  mem_cl_stats.allocated_chunks++;
+  if ( mem_cl_stats.allocated_chunks > mem_cl_stats.peak_allocated_chunks ) {
+    mem_cl_stats.peak_allocated_chunks = mem_cl_stats.allocated_chunks;
+  }
+}
+
+static void mem_cl_stat_free (void)
+{
+  mem_cl_stats.allocated_chunks--;
+}
+#else
+#define MEM_CL_STAT_ALLOC() 
+#define MEM_CL_STAT_FREE() 
+#endif 
 /**
  * Constructor
  */
@@ -105,7 +136,7 @@ rcs_chunked_list_t::node_t*
 rcs_chunked_list_t::append_new (void)
 {
   assert_list_is_correct ();
-
+  MEM_CL_STAT_ALLOC();
   node_t *node_p = (node_t*) mem_heap_alloc_chunked_block (MEM_HEAP_ALLOC_LONG_TERM);
 
   set_prev (node_p, tail_p);
@@ -141,7 +172,7 @@ rcs_chunked_list_t::node_t*
 rcs_chunked_list_t::insert_new (rcs_chunked_list_t::node_t* after_p) /**< the node to insert the new node after */
 {
   assert_list_is_correct ();
-
+  MEM_CL_STAT_ALLOC();
   node_t *node_p = (node_t*) mem_heap_alloc_chunked_block (MEM_HEAP_ALLOC_LONG_TERM);
 
   JERRY_ASSERT (head_p != NULL);
@@ -196,7 +227,7 @@ rcs_chunked_list_t::remove (rcs_chunked_list_t::node_t* node_p) /**< node to rem
   {
     set_prev (next_node_p, prev_node_p);
   }
-
+  MEM_CL_STAT_FREE();
   mem_heap_free_block (node_p);
 
   assert_list_is_correct ();

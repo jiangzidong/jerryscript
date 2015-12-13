@@ -17,6 +17,42 @@
 #include "jrt-libc-includes.h"
 #include "jsp-mm.h"
 
+#ifdef MEM_STATS
+#include "mem-config.h"
+mem_al_stats_t mem_al_stats;
+mem_al_stats.peak_allocated_chunks = 0;
+mem_al_stats.allocated_chunks = 0;
+void
+mem_al_get_stats (mem_al_stats_t *out_al_stats_p) /**< out: al' stats */
+{
+  JERRY_ASSERT (out_al_stats_p != NULL);
+
+  *out_al_stats_p = mem_al_stats;
+} /* mem_pools_get_stats */
+
+#define MEM_AL_STAT_ALLOC(a) mem_al_stat_alloc(a)
+#define MEM_AL_STAT_FREE(a) mem_al_stat_free(a)
+
+static void mem_al_stat_alloc (size_t size)
+{
+  size_t chunks = JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE;
+  mem_al_stats.allocated_chunks = mem_al_stats.allocated_chunks + chunks;
+  if ( mem_al_stats.allocated_chunks > mem_al_stats.peak_allocated_chunks ) {
+    mem_al_stats.peak_allocated_chunks = mem_al_stats.allocated_chunks;
+  }
+}
+
+static void mem_al_stat_free (size_t size)
+{
+  size_t chunks = JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE;
+  mem_al_stats.allocated_chunks = mem_al_stats.allocated_chunks - chunks;
+}
+#else
+#define MEM_AL_STAT_ALLOC(a) 
+#define MEM_AL_STAT_FREE(a) 
+#endif
+
+
 typedef struct
 {
   uint8_t element_size;
@@ -46,11 +82,11 @@ array_list_append (array_list al, void *element)
   {
     size_t size = jsp_mm_recommend_size (h->size + h->element_size);
     JERRY_ASSERT (size > h->size);
-
+    MEM_AL_STAT_ALLOC(size);
     uint8_t *new_block_p = (uint8_t *) jsp_mm_alloc (size);
     memcpy (new_block_p, h, h->size);
     memset (new_block_p + h->size, 0, size - h->size);
-
+    MEM_AL_STAT_FREE(h->size);
     jsp_mm_free (h);
 
     h = (array_list_header *) new_block_p;
@@ -112,6 +148,7 @@ array_list
 array_list_init (uint8_t element_size)
 {
   size_t size = jsp_mm_recommend_size (sizeof (array_list_header));
+  MEM_AL_STAT_ALLOC(size);
   array_list_header *header = (array_list_header *) jsp_mm_alloc (size);
   memset (header, 0, size);
   header->element_size = element_size;
@@ -131,5 +168,6 @@ void
 array_list_free (array_list al)
 {
   array_list_header *h = extract_header (al);
+  MEM_AL_STAT_FREE(h->size);
   jsp_mm_free (h);
 }
