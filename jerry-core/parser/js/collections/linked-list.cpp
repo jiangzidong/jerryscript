@@ -29,7 +29,7 @@ mem_ll_get_stats (mem_ll_stats_t *out_ll_stats_p) /**< out: ll' stats */
 } /* mem_pools_get_stats */
 
 #define MEM_LL_STAT_ALLOC(a) mem_ll_stat_alloc(a)
-#define MEM_LL_STAT_FREE(a mem_ll_stat_free()
+#define MEM_LL_STAT_FREE() mem_ll_stat_free()
 
 static void mem_ll_stat_alloc (size_t size)
 {
