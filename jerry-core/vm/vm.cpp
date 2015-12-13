@@ -69,6 +69,8 @@ static const char *__op_names[VM_OP__COUNT] =
 #define INTERP_MEM_PRINT_INDENTATION_MAX  (125)
 static uint32_t interp_mem_stats_print_indentation = 0;
 static bool interp_mem_stats_enabled = false;
+static bool is_show_mem_timeline = false;
+static uint32_t last_op_idx = VM_OP__COUNT;
 
 static void
 interp_mem_stats_print_legend (void)
@@ -369,6 +371,10 @@ vm_init (const bytecode_data_header_t *program_p, /**< pointer to byte-code data
   __program = program_p;
 } /* vm_init */
 
+void vm_set_show_mem_timeline (bool show_timeline)
+{
+  is_show_mem_timeline = show_timeline;
+}
 /**
  * Cleanup interpreter
  */
@@ -435,7 +441,11 @@ vm_run_global (void)
   ecma_deref_object (lex_env_p);
 
   JERRY_ASSERT (vm_top_context_p == NULL);
-
+#ifdef MEM_STATS
+  if (is_show_mem_timeline) {
+    mem_stats_timeline_print (__op_names[last_op_idx]);
+  }
+#endif /* MEM_STATS */
   return ret_code;
 } /* vm_run_global */
 
@@ -540,6 +550,10 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p, /**< interpreter context */
                                      instr_pos,
                                      &heap_stats_before,
                                      &pools_stats_before);
+      if (last_op_idx != VM_OP__COUNT && is_show_mem_timeline) {
+        mem_stats_timeline_print (__op_names[last_op_idx]);
+      }
+      last_op_idx = curr->op_idx;
 #endif /* MEM_STATS */
 
       completion = __opfuncs[curr->op_idx] (*curr, frame_ctx_p);

@@ -1526,6 +1526,7 @@ jerry_parse (const jerry_api_char_t* source_p, /**< script source */
 
   vm_init (bytecode_data_p, is_show_mem_stats_per_instruction);
 
+  vm_set_show_mem_timeline(is_show_mem_timeline);
   return true;
 } /* jerry_parse */
 

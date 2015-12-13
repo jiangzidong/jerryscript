@@ -3334,7 +3334,7 @@ parser_parse_program (const jerry_api_char_t *source_p, /**< source code buffer 
 
     skip_newlines ();
 
-    if (parser_show_mem_timeline && !inside_eval) {
+    if (parser_show_mem_timeline) {
       mem_stats_timeline_print("before_parser");
       serializer_set_show_mem_timeline(true);
     }
@@ -3419,7 +3419,7 @@ parser_parse_program (const jerry_api_char_t *source_p, /**< source code buffer 
 
   jsp_label_finalize ();
   jsp_mm_finalize ();
-  if (parser_show_mem_timeline && !inside_eval) {
+  if (parser_show_mem_timeline) {
     mem_stats_timeline_print("parser_end");
     serializer_set_show_mem_timeline(false);
   }
