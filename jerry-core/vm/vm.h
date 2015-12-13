@@ -22,6 +22,7 @@
 
 extern void vm_init (const bytecode_data_header_t *, bool);
 extern void vm_finalize (void);
+extern void vm_set_show_mem_timeline (bool);
 extern jerry_completion_code_t vm_run_global (void);
 extern ecma_completion_value_t vm_run_eval (const bytecode_data_header_t *, bool);
 
