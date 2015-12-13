@@ -16,9 +16,7 @@
 #include "rcs-chunked-list.h"
 
 #ifdef MEM_STATS
-mem_cl_stats_t mem_cl_stats;
-mem_cl_stats.peak_allocated_chunks = 0;
-mem_cl_stats.allocated_chunks = 0;
+mem_cl_stats_t mem_cl_stats={0,0};
 void
 mem_cl_get_stats (mem_cl_stats_t *out_al_stats_p) /**< out: al' stats */
 {

@@ -183,7 +183,6 @@ mem_stats_print (void)
 #endif /* MEM_STATS */
 
 
-#define TL_PRINT(a,b,c,d) printf(a,b,c,d)
 
 void
 mem_stats_timeline_print (const char* name)
@@ -196,7 +195,7 @@ mem_stats_timeline_print (const char* name)
   mem_al_get_stats (&al_stats);
   mem_cl_stats_t cl_stats;
   mem_cl_get_stats (&cl_stats);
-  TL_PRINT ("%s %zu %zu %zu %zu %zu %zu %zu %zu\n",
+  printf ("%s %zu %zu %zu %zu %zu %zu %zu %zu\n",
               name,
               heap_stats.allocated_chunks,
               heap_stats.peak_allocated_chunks,

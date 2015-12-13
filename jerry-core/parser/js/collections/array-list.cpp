@@ -19,9 +19,7 @@
 
 #ifdef MEM_STATS
 #include "mem-config.h"
-mem_al_stats_t mem_al_stats;
-mem_al_stats.peak_allocated_chunks = 0;
-mem_al_stats.allocated_chunks = 0;
+mem_al_stats_t mem_al_stats={0,0};
 void
 mem_al_get_stats (mem_al_stats_t *out_al_stats_p) /**< out: al' stats */
 {
