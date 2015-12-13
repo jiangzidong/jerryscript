@@ -18,11 +18,11 @@
 #ifdef MEM_STATS
 mem_cl_stats_t mem_cl_stats={0,0};
 void
-mem_cl_get_stats (mem_cl_stats_t *out_al_stats_p) /**< out: al' stats */
+mem_cl_get_stats (mem_cl_stats_t *out_cl_stats_p) /**< out: cl' stats */
 {
-  JERRY_ASSERT (out_al_stats_p != NULL);
+  JERRY_ASSERT (out_cl_stats_p != NULL);
 
-  *out_al_stats_p = mem_cl_stats;
+  *out_cl_stats_p = mem_cl_stats;
 } /* mem_pools_get_stats */
 
 #define MEM_CL_STAT_ALLOC() mem_cl_stat_alloc()

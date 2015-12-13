@@ -193,9 +193,11 @@ mem_stats_timeline_print (const char* name)
   mem_pools_get_stats (&pool_stats);
   mem_al_stats_t al_stats;
   mem_al_get_stats (&al_stats);
+  mem_ll_stats_t ll_stats;
+  mem_ll_get_stats (&ll_stats);
   mem_cl_stats_t cl_stats;
   mem_cl_get_stats (&cl_stats);
-  printf ("%s %zu %zu %zu %zu %zu %zu %zu %zu\n",
+  printf ("%s %zu %zu %zu %zu %zu %zu %zu %zu %zu %zu\n",
               name,
               heap_stats.allocated_chunks,
               heap_stats.peak_allocated_chunks,
@@ -203,6 +205,8 @@ mem_stats_timeline_print (const char* name)
               pool_stats.peak_allocated_chunks,
               al_stats.allocated_chunks,
               al_stats.peak_allocated_chunks,
+              ll_stats.allocated_chunks,
+              ll_stats.peak_allocated_chunks,
               cl_stats.allocated_chunks,
               cl_stats.peak_allocated_chunks);
 }

@@ -28,4 +28,15 @@ void linked_list_set_element (linked_list, size_t, void *);
 void linked_list_remove_element (linked_list, size_t);
 uint16_t linked_list_get_length (linked_list);
 
+#ifdef MEM_STATS
+
+typedef struct
+{
+  size_t peak_allocated_chunks;
+  size_t allocated_chunks;
+} mem_ll_stats_t;
+
+extern void mem_ll_get_stats (mem_ll_stats_t *);
+#endif
+
 #endif /* LINKED_LIST_H */

@@ -17,6 +17,38 @@
 #include "jsp-mm.h"
 #include "linked-list.h"
 
+#ifdef MEM_STATS
+#include "mem-config.h"
+mem_ll_stats_t mem_ll_stats={0,0};
+void
+mem_ll_get_stats (mem_ll_stats_t *out_ll_stats_p) /**< out: ll' stats */
+{
+  JERRY_ASSERT (out_ll_stats_p != NULL);
+
+  *out_ll_stats_p = mem_ll_stats;
+} /* mem_pools_get_stats */
+
+#define MEM_LL_STAT_ALLOC(a) mem_ll_stat_alloc(a)
+#define MEM_LL_STAT_FREE(a mem_ll_stat_free()
+
+static void mem_ll_stat_alloc (size_t size)
+{
+  size_t chunks = JERRY_ALIGNUP (size, MEM_HEAP_CHUNK_SIZE) / MEM_HEAP_CHUNK_SIZE;
+  mem_ll_stats.allocated_chunks = mem_ll_stats.allocated_chunks + chunks;
+  if ( mem_ll_stats.allocated_chunks > mem_ll_stats.peak_allocated_chunks ) {
+    mem_ll_stats.peak_allocated_chunks = mem_ll_stats.allocated_chunks;
+  }
+}
+
+static void mem_ll_stat_free (void)
+{
+  mem_ll_stats.allocated_chunks--;
+}
+#else
+#define MEM_LL_STAT_ALLOC(a) 
+#define MEM_LL_STAT_FREE() 
+#endif
+
 /**
  * Header of a linked list's chunk
  */
@@ -69,7 +101,7 @@ linked_list_init (size_t element_size) /**< size of a linked list's element */
 {
   JERRY_ASSERT (element_size <= linked_list_block_size (true));
   size_t size = sizeof (linked_list_header) + sizeof (linked_list_chunk_header) + linked_list_block_size (true);
-
+  MEM_LL_STAT_ALLOC(size);
   linked_list list = (linked_list) jsp_mm_alloc (size);
   JERRY_ASSERT (list != null_list);
 
@@ -100,7 +132,7 @@ linked_list_append_new_chunk (linked_list_header *header_p, /**< linked list's h
 
   JERRY_ASSERT (header_p->element_size <= linked_list_block_size (false));
   size_t size = sizeof (linked_list_chunk_header) + linked_list_block_size (false);
-
+  MEM_LL_STAT_ALLOC(size);
   linked_list_chunk_header *new_chunk_header_p = (linked_list_chunk_header *) jsp_mm_alloc (size);
   JERRY_ASSERT (new_chunk_header_p != NULL);
 
@@ -127,11 +159,12 @@ linked_list_free (linked_list list) /**< linked list's identifier */
   while (iter_p != NULL)
   {
     linked_list_chunk_header *iter_next_p = iter_p->next_p;
+    MEM_LL_STAT_FREE();
     jsp_mm_free (iter_p);
 
     iter_p = iter_next_p;
   }
-
+  MEM_LL_STAT_FREE();
   jsp_mm_free (header_p);
 } /* linked_list_free */
 
