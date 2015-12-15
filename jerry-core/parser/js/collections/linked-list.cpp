@@ -342,7 +342,7 @@ linked_list_remove_element (linked_list list, /**< linked list's identifier */
   if (list_chunk_iter_p != chunk_prev_to_chunk_with_last_elem_p)
   {
     JERRY_ASSERT (chunk_prev_to_chunk_with_last_elem_p->next_p == list_chunk_iter_p);
-
+    MEM_LL_STAT_FREE();
     jsp_mm_free (list_chunk_iter_p);
     chunk_prev_to_chunk_with_last_elem_p->next_p = NULL;
   }
