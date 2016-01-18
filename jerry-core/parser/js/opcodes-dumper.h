@@ -24,511 +24,28 @@
 #include "rcs-records.h"
 #include "scopes-tree.h"
 
-/**
- * Operand (descriptor of value or reference in context of parser)
- */
-class jsp_operand_t
+typedef enum type_t : uint8_t
 {
-public:
-  enum type_t : uint8_t
-  {
-    EMPTY, /**< empty operand */
-    STRING_LITERAL, /**< operand contains string literal value */
-    NUMBER_LITERAL, /**< operand contains number literal value */
-    REGEXP_LITERAL, /**< operand contains regexp literal value */
-    SIMPLE_VALUE, /**< operand contains a simple ecma value */
-    SMALLINT, /**< operand contains small integer value (less than 256) */
-    IDENTIFIER, /**< Identifier reference */
-    THIS_BINDING, /**< ThisBinding operand */
-    TMP, /**< operand contains byte-code register index */
-    IDX_CONST, /**< operand contains an integer constant that fits vm_idx_t */
-    UNKNOWN, /**< operand, representing unknown value that would be rewritten later */
-    UNINITIALIZED /**< uninitialized operand
-                   *
-                   *   Note:
-                   *      For use only in assertions to check that operands
-                   *      are initialized before actual usage */
-  };
-
-  /**
-   * Construct operand template
-   */
-  jsp_operand_t (void)
-  {
-#ifndef JERRY_NDEBUG
-    _type = jsp_operand_t::UNINITIALIZED;
-#endif /* !JERRY_NDEBUG */
-  } /* jsp_operand_t */
-
-  /**
-   * Construct empty operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_empty_operand (void)
-  {
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::EMPTY;
-
-    return ret;
-  } /* make_empty_operand */
-
-  /**
-   * Construct ThisBinding operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_this_operand (void)
-  {
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::THIS_BINDING;
-
-    return ret;
-  } /* make_this_operand */
-
-  /**
-   * Construct unknown operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_unknown_operand (void)
-  {
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::UNKNOWN;
-
-    return ret;
-  } /* make_unknown_operand */
-
-  /**
-   * Construct idx-constant operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_idx_const_operand (vm_idx_t cnst) /**< integer in vm_idx_t range */
-  {
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::IDX_CONST;
-    ret._data.idx_const = cnst;
-
-    return ret;
-  } /* make_idx_const_operand */
-
-  /**
-   * Construct small integer operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_smallint_operand (uint8_t integer_value) /**< small integer value */
-  {
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::SMALLINT;
-    ret._data.smallint_value = integer_value;
-
-    return ret;
-  } /* make_smallint_operand */
-
-  /**
-   * Construct simple ecma value operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_simple_value_operand (ecma_simple_value_t simple_value) /**< simple ecma value */
-  {
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::SIMPLE_VALUE;
-    ret._data.simple_value = simple_value;
-
-    return ret;
-  } /* make_simple_value_operand */
-
-  /**
-   * Construct string literal operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_string_lit_operand (lit_cpointer_t lit_id) /**< literal identifier */
-  {
-    JERRY_ASSERT (lit_id.packed_value != NOT_A_LITERAL.packed_value);
-
-#ifndef JERRY_NDEBUG
-    lit_literal_t lit = lit_get_literal_by_cp (lit_id);
-
-    JERRY_ASSERT (RCS_RECORD_IS_CHARSET (lit)
-                  || RCS_RECORD_IS_MAGIC_STR (lit)
-                  || RCS_RECORD_IS_MAGIC_STR_EX (lit));
-#endif /* !JERRY_NDEBUG */
-
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::STRING_LITERAL;
-    ret._data.lit_id = lit_id;
-
-    return ret;
-  } /* make_string_lit_operand */
-
-  /**
-   * Construct RegExp literal operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_regexp_lit_operand (lit_cpointer_t lit_id) /**< literal identifier */
-  {
-    JERRY_ASSERT (lit_id.packed_value != NOT_A_LITERAL.packed_value);
-
-#ifndef JERRY_NDEBUG
-    lit_literal_t lit = lit_get_literal_by_cp (lit_id);
-
-    JERRY_ASSERT (RCS_RECORD_IS_CHARSET (lit)
-                  || RCS_RECORD_IS_MAGIC_STR (lit)
-                  || RCS_RECORD_IS_MAGIC_STR_EX (lit));
-#endif /* !JERRY_NDEBUG */
-
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::REGEXP_LITERAL;
-    ret._data.lit_id = lit_id;
-
-    return ret;
-  } /* make_regexp_lit_operand */
-
-  /**
-   * Construct number literal operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_number_lit_operand (lit_cpointer_t lit_id) /**< literal identifier */
-  {
-    JERRY_ASSERT (lit_id.packed_value != NOT_A_LITERAL.packed_value);
-
-#ifndef JERRY_NDEBUG
-    lit_literal_t lit = lit_get_literal_by_cp (lit_id);
-
-    JERRY_ASSERT (RCS_RECORD_IS_NUMBER (lit));
-#endif /* !JERRY_NDEBUG */
-
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::NUMBER_LITERAL;
-    ret._data.lit_id = lit_id;
-
-    return ret;
-  } /* make_number_lit_operand */
-
-  /**
-   * Construct identifier reference operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_identifier_operand (lit_cpointer_t lit_id) /**< literal identifier */
-  {
-    JERRY_ASSERT (lit_id.packed_value != NOT_A_LITERAL.packed_value);
-
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::IDENTIFIER;
-    ret._data.identifier = lit_id;
-
-    return ret;
-  } /* make_identifier_operand */
-
-  /**
-   * Construct register operand
-   *
-   * @return constructed operand
-   */
-  static jsp_operand_t
-  make_reg_operand (vm_idx_t reg_index) /**< register index */
-  {
-    /*
-     * The following check currently leads to 'comparison is always true
-     * due to limited range of data type' warning, so it is turned off.
-     *
-     * If VM_IDX_GENERAL_VALUE_FIRST is changed to value greater than 0,
-     * the check should be restored.
-     */
-    // JERRY_ASSERT (reg_index >= VM_IDX_GENERAL_VALUE_FIRST);
-    static_assert (VM_IDX_GENERAL_VALUE_FIRST == 0, "See comment above");
-
-    JERRY_ASSERT (reg_index <= VM_IDX_GENERAL_VALUE_LAST);
-
-    jsp_operand_t ret;
-
-    ret._type = jsp_operand_t::TMP;
-    ret._data.uid = reg_index;
-
-    return ret;
-  } /* make_reg_operand */
-
-  /**
-   * Is it empty operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_empty_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::EMPTY);
-  } /* is_empty_operand */
-
-  /**
-   * Is it ThisBinding operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_this_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::THIS_BINDING);
-  } /* is_this_operand */
-
-  /**
-   * Is it unknown operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_unknown_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::UNKNOWN);
-  } /* is_unknown_operand */
-
-  /**
-   * Is it idx-constant operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_idx_const_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::IDX_CONST);
-  } /* is_idx_const_operand */
-
-  /**
-   * Is it byte-code register operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_register_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::TMP);
-  } /* is_register_operand */
-
-  /**
-   * Is it simple ecma value operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_simple_value_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::SIMPLE_VALUE);
-  } /* is_simple_value_operand */
-
-  /**
-   * Is it small integer operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_smallint_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::SMALLINT);
-  } /* is_smallint_operand */
-
-  /**
-   * Is it number literal operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_number_lit_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::NUMBER_LITERAL);
-  } /* is_number_lit_operand */
-
-  /**
-   * Is it string literal operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_string_lit_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::STRING_LITERAL);
-  } /* is_string_lit_operand */
-
-  /**
-   * Is it RegExp literal operand?
-   *
-   * @return true / false
-   */
-  bool
-  is_regexp_lit_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::REGEXP_LITERAL);
-  } /* is_regexp_lit_operand */
-
-  /**
-   * Is it identifier reference operand?
-   *
-   * @return true / false
-   */
-  bool is_identifier_operand (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    return (_type == jsp_operand_t::IDENTIFIER);
-  } /* is_identifier_operand */
-
-  /**
-   * Get string literal - name of Identifier reference
-   *
-   * @return literal identifier
-   */
-  lit_cpointer_t get_identifier_name (void) const
-  {
-    JERRY_ASSERT (is_identifier_operand ());
-
-    return (_data.identifier);
-  } /* get_identifier_name */
-
-  /**
-   * Get idx for operand
-   *
-   * @return VM_IDX_REWRITE_LITERAL_UID (for jsp_operand_t::LITERAL),
-   *         or register index (for jsp_operand_t::TMP).
-   */
-  vm_idx_t
-  get_idx (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    if (_type == jsp_operand_t::TMP)
-    {
-      return _data.uid;
-    }
-    else if (_type == jsp_operand_t::STRING_LITERAL
-             || _type == jsp_operand_t::NUMBER_LITERAL)
-    {
-      return VM_IDX_REWRITE_LITERAL_UID;
-    }
-    else if (_type == jsp_operand_t::THIS_BINDING)
-    {
-      return VM_REG_SPECIAL_THIS_BINDING;
-    }
-    else
-    {
-      JERRY_ASSERT (_type == jsp_operand_t::EMPTY);
-
-      return VM_IDX_EMPTY;
-    }
-  } /* get_idx */
-
-  /**
-   * Get literal from operand
-   *
-   * @return literal identifier (for jsp_operand_t::LITERAL),
-   *         or NOT_A_LITERAL (for jsp_operand_t::TMP).
-   */
-  lit_cpointer_t
-  get_literal (void) const
-  {
-    JERRY_ASSERT (_type != jsp_operand_t::UNINITIALIZED);
-
-    if (_type == jsp_operand_t::TMP)
-    {
-      return NOT_A_LITERAL;
-    }
-    else if (_type == jsp_operand_t::STRING_LITERAL
-             || _type == jsp_operand_t::NUMBER_LITERAL
-             || _type == jsp_operand_t::REGEXP_LITERAL)
-    {
-      return _data.lit_id;
-    }
-    else
-    {
-      JERRY_ASSERT (_type == jsp_operand_t::EMPTY);
-
-      return NOT_A_LITERAL;
-    }
-  } /* get_literal */
-
-  /**
-   * Get constant from idx-constant operand
-   *
-   * @return an integer
-   */
-  vm_idx_t
-  get_idx_const (void) const
-  {
-    JERRY_ASSERT (is_idx_const_operand ());
-
-    return _data.idx_const;
-  } /* get_idx_const */
-
-  /**
-   * Get small integer constant from operand
-   *
-   * @return an integer
-   */
-  uint8_t
-  get_smallint_value (void) const
-  {
-    JERRY_ASSERT (is_smallint_operand ());
-
-    return _data.smallint_value;
-  } /* get_smallint_value */
-
-  /**
-   * Get simple value from operand
-   *
-   * @return a simple ecma value
-   */
-  ecma_simple_value_t
-  get_simple_value (void) const
-  {
-    JERRY_ASSERT (is_simple_value_operand ());
-
-    return (ecma_simple_value_t) _data.simple_value;
-  } /* get_simple_value */
-private:
+  EMPTY, /**< empty operand */
+  STRING_LITERAL, /**< operand contains string literal value */
+  NUMBER_LITERAL, /**< operand contains number literal value */
+  REGEXP_LITERAL, /**< operand contains regexp literal value */
+  SIMPLE_VALUE, /**< operand contains a simple ecma value */
+  SMALLINT, /**< operand contains small integer value (less than 256) */
+  IDENTIFIER, /**< Identifier reference */
+  THIS_BINDING, /**< ThisBinding operand */
+  TMP, /**< operand contains byte-code register index */
+  IDX_CONST, /**< operand contains an integer constant that fits vm_idx_t */
+  UNKNOWN, /**< operand, representing unknown value that would be rewritten later */
+  UNINITIALIZED /**< uninitialized operand
+                 *
+                 *   Note:
+                 *      For use only in assertions to check that operands
+                 *      are initialized before actual usage */
+} jsp_type_t;
+
+typedef struct
+{
   union
   {
     vm_idx_t idx_const; /**< idx constant value (for jsp_operand_t::IDX_CONST) */
@@ -537,10 +54,41 @@ private:
     lit_cpointer_t identifier; /**< Identifier reference (is_value_based_ref flag not set) */
     uint8_t smallint_value; /**< small integer value */
     uint8_t simple_value; /**< simple ecma value */
-  } _data;
+  } data;
 
-  type_t _type; /**< type of operand */
-};
+  jsp_type_t type; /**< type of operand */
+} jsp_operand_t;
+
+extern jsp_operand_t jsp_make_empty_operand (void);
+extern jsp_operand_t jsp_make_this_operand (void);
+extern jsp_operand_t jsp_make_unknown_operand (void);
+extern jsp_operand_t jsp_make_idx_const_operand (vm_idx_t);
+extern jsp_operand_t jsp_make_smallint_operand (uint8_t);
+extern jsp_operand_t jsp_make_simple_value_operand (ecma_simple_value_t);
+extern jsp_operand_t jsp_make_string_lit_operand (lit_cpointer_t);
+extern jsp_operand_t jsp_make_regexp_lit_operand (lit_cpointer_t);
+extern jsp_operand_t jsp_make_number_lit_operand (lit_cpointer_t);
+extern jsp_operand_t jsp_make_identifier_operand (lit_cpointer_t);
+extern jsp_operand_t jsp_make_reg_operand (vm_idx_t);
+
+extern bool jsp_is_empty_operand (jsp_operand_t);
+extern bool jsp_is_this_operand (jsp_operand_t);
+extern bool jsp_is_unknown_operand (jsp_operand_t);
+extern bool jsp_is_idx_const_operand (jsp_operand_t);
+extern bool jsp_is_register_operand (jsp_operand_t);
+extern bool jsp_is_simple_value_operand (jsp_operand_t);
+extern bool jsp_is_smallint_operand (jsp_operand_t);
+extern bool jsp_is_number_lit_operand (jsp_operand_t);
+extern bool jsp_is_string_lit_operand (jsp_operand_t);
+extern bool jsp_is_regexp_lit_operand (jsp_operand_t);
+extern bool jsp_is_identifier_operand (jsp_operand_t);
+
+extern lit_cpointer_t jsp_operand_get_identifier_name (jsp_operand_t);
+extern lit_cpointer_t jsp_operand_get_literal (jsp_operand_t);
+extern vm_idx_t jsp_operand_get_idx (jsp_operand_t);
+extern vm_idx_t jsp_operand_get_idx_const (jsp_operand_t);
+extern ecma_simple_value_t jsp_operand_get_simple_value (jsp_operand_t);
+extern uint8_t jsp_operand_get_smallint_value (jsp_operand_t);
 
 static_assert (sizeof (jsp_operand_t) == 4, "");
 
