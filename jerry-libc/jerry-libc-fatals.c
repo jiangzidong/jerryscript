@@ -18,7 +18,7 @@
  */
 
 #include "stdio-jerry.h"
-#include <stdlib.h>
+#include "stdlib-jerry.h"
 
 #include "jerry-libc-defs.h"
 

@@ -1,0 +1,13 @@
+obj-y += opcodes-agnostic.o
+obj-y += opcodes-ecma-arithmetics.o
+obj-y += opcodes-ecma-bitwise.o
+obj-y += opcodes-ecma-equality.o
+obj-y += opcodes-ecma-relational.o
+obj-y += opcodes-ecma-try-catch-finally.o
+obj-y += opcodes-for-in.o
+obj-y += opcodes-helpers-variables.o
+obj-y += opcodes-varg.o
+obj-y += opcodes.o
+obj-y += pretty-printer.o
+obj-y += vm-stack.o
+obj-y += vm.o

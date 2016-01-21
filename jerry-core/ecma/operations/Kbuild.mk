@@ -1,0 +1,17 @@
+obj-y += ecma-array-object.o
+obj-y += ecma-boolean-object.o
+obj-y += ecma-comparison.o
+obj-y += ecma-conversion.o
+obj-y += ecma-eval.o
+obj-y += ecma-exceptions.o
+obj-y += ecma-function-object.o
+obj-y += ecma-get-put-value.o
+obj-y += ecma-lex-env.o
+obj-y += ecma-number-arithmetic.o
+obj-y += ecma-number-object.o
+obj-y += ecma-objects-arguments.o
+obj-y += ecma-objects-general.o
+obj-y += ecma-objects.o
+obj-y += ecma-reference.o
+obj-y += ecma-regexp-object.o
+obj-y += ecma-string-object.o

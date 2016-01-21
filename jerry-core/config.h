@@ -46,11 +46,7 @@
 /**
  * Size of heap
  */
-#ifndef CONFIG_MEM_HEAP_AREA_SIZE
-# define CONFIG_MEM_HEAP_AREA_SIZE (256 * 1024)
-#elif CONFIG_MEM_HEAP_AREA_SIZE > (256 * 1024)
-# error "Currently, maximum 256 kilobytes heap size is supported"
-#endif /* !CONFIG_MEM_HEAP_AREA_SIZE */
+
 
 /**
  * Desired limit of heap usage

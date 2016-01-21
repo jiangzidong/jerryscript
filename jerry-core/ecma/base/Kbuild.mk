@@ -1,0 +1,11 @@
+obj-y += ecma-alloc.o
+obj-y += ecma-gc.o
+obj-y += ecma-helpers-conversion.o
+obj-y += ecma-helpers-external-pointers.o
+obj-y += ecma-helpers-number.o
+obj-y += ecma-helpers-string.o
+obj-y += ecma-helpers-value.o
+obj-y += ecma-helpers-values-collection.o
+obj-y += ecma-helpers.o
+obj-y += ecma-init-finalize.o
+obj-y += ecma-lcache.o
