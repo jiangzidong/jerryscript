@@ -99,7 +99,7 @@ typedef void (*mem_try_give_memory_back_callback_t) (mem_try_give_memory_back_se
 #define MEM_CP_SET_POINTER(cp_value, non_compressed_pointer) \
   do \
   { \
-    auto __temp_pointer = non_compressed_pointer; \
+    auto void *__temp_pointer = non_compressed_pointer; \
     non_compressed_pointer = __temp_pointer; \
   } while (0); \
   \
