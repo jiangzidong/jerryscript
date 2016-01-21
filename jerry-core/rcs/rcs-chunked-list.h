@@ -40,11 +40,11 @@ typedef struct
 /**
  * Chunked list
  */
-struct rcs_chunked_list_t
+typedef struct
 {
   rcs_chunked_list_node_t *head_p; /**< head node of list */
   rcs_chunked_list_node_t *tail_p; /**< tail node of list */
-};
+} rcs_chunked_list_t;
 
 extern void rcs_chunked_list_init (rcs_chunked_list_t *);
 extern void rcs_chunked_list_free (rcs_chunked_list_t *);

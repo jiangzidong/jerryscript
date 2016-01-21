@@ -48,7 +48,7 @@ typedef uint8_t vm_idx_t;
 /**
  * Description of vm_idx_t possible value ranges and special values
  */
-enum : vm_idx_t
+enum
 {
   VM_IDX_GENERAL_VALUE_FIRST = 0, /**< first idx value that can be used for any argument value */
   VM_IDX_GENERAL_VALUE_LAST  = 252, /**< last idx value that can be used for any argument value */
@@ -80,7 +80,7 @@ enum : vm_idx_t
 /**
  * Ranges of registers (temporary variables)
  */
-typedef enum : vm_idx_t
+typedef enum
 {
   VM_REG_FIRST = VM_IDX_REG_FIRST, /** first register */
   VM_REG_LAST = VM_IDX_REG_LAST, /**< last register */
@@ -140,7 +140,7 @@ typedef enum
   OPCODE_META_TYPE_END_FOR_IN /**< end of for-in statement */
 } opcode_meta_type;
 
-typedef enum : vm_idx_t
+typedef enum
 {
   OPCODE_CALL_FLAGS__EMPTY                   = (0u),      /**< initializer for empty flag set */
   OPCODE_CALL_FLAGS_HAVE_THIS_ARG            = (1u << 0), /**< flag, indicating that call is performed
@@ -178,11 +178,12 @@ typedef enum
  * Forward declaration of instruction structure
  */
 struct vm_instr_t;
-
+typedef struct vm_instr_t vm_instr_t;
 /**
  * Forward declaration of bytecode data header structure
  */
 struct bytecode_data_header_t;
+typedef struct bytecode_data_header_t bytecode_data_header_t;
 
 /**
  * Context of interpreter, related to a JS stack frame
