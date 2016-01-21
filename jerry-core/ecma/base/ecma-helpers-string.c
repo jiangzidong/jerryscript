@@ -1405,7 +1405,8 @@ ecma_string_get_size (const ecma_string_t *string_p) /**< ecma-string */
   else if (container == ECMA_STRING_CONTAINER_UINT32_IN_DESC)
   {
     const uint32_t uint32_number = string_p->u.uint32_number;
-    const int32_t max_uint32_len = 10;
+    //const int32_t max_uint32_len = 10;
+    #define max_uint32_len 10
     const uint32_t nums_with_ascending_length[max_uint32_len] =
     {
       1u,
@@ -1427,7 +1428,7 @@ ecma_string_get_size (const ecma_string_t *string_p) /**< ecma-string */
     {
       size++;
     }
-
+    #undef max_uint32_len
     return (lit_utf8_size_t) size;
   }
   else if (container == ECMA_STRING_CONTAINER_HEAP_NUMBER)
