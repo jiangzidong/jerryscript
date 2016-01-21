@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include "stdio-jerry.h"
 
 #include "bytecode-data.h"
 #include "ecma-alloc.h"
@@ -77,7 +77,7 @@ int jerry_debug_level = 0;
 /**
  * File, used for logging
  */
-FILE *jerry_log_file = NULL;
+//FILE *jerry_log_file = NULL;
 #endif /* JERRY_ENABLE_LOG */
 
 /**

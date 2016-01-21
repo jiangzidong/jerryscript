@@ -25,7 +25,7 @@
 #include "ecma-objects.h"
 #include "ecma-objects-general.h"
 #include "ecma-try-catch-macro.h"
-#include "fdlibm-math.h"
+//#include "fdlibm-math.h"
 #include "jrt.h"
 #include "jrt-libc-includes.h"
 

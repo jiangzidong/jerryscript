@@ -16,11 +16,10 @@
 #ifndef JRT_LIBC_INCLUDES_H
 #define JRT_LIBC_INCLUDES_H
 
-#include <ctype.h>
-#include <setjmp.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "setjmp-jerry.h"
+#include "stdarg.h"
+#include "stdio-jerry.h"
+#include "stdlib-jerry.h"
+#include "string-jerry.h"
 
 #endif /* !JRT_LIBC_INCLUDES_H */

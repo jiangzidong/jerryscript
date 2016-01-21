@@ -22,7 +22,7 @@
 #include "ecma-helpers.h"
 #include "ecma-objects.h"
 #include "ecma-try-catch-macro.h"
-#include "fdlibm-math.h"
+//#include "fdlibm-math.h"
 
 #ifndef CONFIG_ECMA_COMPACT_PROFILE_DISABLE_DATE_BUILTIN
 

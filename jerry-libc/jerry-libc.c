@@ -17,24 +17,55 @@
  * Jerry libc's common functions implementation
  */
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
+#include "stdlib-jerry.h"
+#include "string-jerry.h"
+#include "stdio-jerry.h"
+#include "setjmp-jerry.h"
+#include "infra/log.h"
 #include "jerry-libc-defs.h"
+
+
+/** exit - cause normal process termination  */
+void __attr_noreturn___ __attr_used___
+exit (int status __attr_unused___)
+{
+  while (true)
+  {
+  }
+} /* exit */
+
+
+/** abort - cause abnormal process termination  */
+void __attr_noreturn___ __attr_used___
+abort (void)
+{
+  while (true)
+  {
+  }
+} /* abort */
+
+int setjmp (jmp_buf env)
+{
+  (void) env;
+  return 0;
+}
+void longjmp (jmp_buf env, int val){
+  (void) env;
+  exit (val);
+}
 
 /**
  * State of pseudo-random number generator
  */
 static unsigned int libc_random_gen_state[4] = { 1455997910, 1999515274, 1234451287, 1949149569 };
 
-/**
- * Standard file descriptors
- */
-FILE *stdin  = (FILE*) 0;
-FILE *stdout = (FILE*) 1;
-FILE *stderr = (FILE*) 2;
+
+int
+printf (const char *format, ...)
+{
+  return pr_info(LOG_MODULE_MAIN, format, ...);
+}
 
 #ifdef __GNUC__
 /*

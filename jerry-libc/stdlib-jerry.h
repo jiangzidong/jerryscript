@@ -13,13 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef JRT_TYPES_H
-#define JRT_TYPES_H
-
-#include <float.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#ifndef JERRY_LIBC_STDLIB_H
+#define JERRY_LIBC_STDLIB_H
 
 
-#endif /* !JRT_TYPES_H */
+
+extern  void __attribute__ ((noreturn)) exit (int);
+extern  void __attribute__ ((noreturn)) abort (void);
+
+/**
+ * Maximum integer that could be returned by random number generator
+ *
+ * See also:
+ *          rand
+ */
+#define RAND_MAX (0x7fffffffu)
+
+extern  int rand (void);
+extern  void srand (unsigned int);
+
+#endif /* !JERRY_LIBC_STDLIB_H */

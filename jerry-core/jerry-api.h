@@ -19,19 +19,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <sys/types.h>
 
-#ifdef __cplusplus
-# define EXTERN_C "C"
-#else /* !__cplusplus */
-# define EXTERN_C
-#endif /* !__cplusplus */
+
+
 
 /** \addtogroup jerry Jerry engine interface
  * @{
  */
 
-/**
+/**pthr
  * Jerry completion codes
  */
 typedef enum
@@ -149,25 +145,25 @@ typedef bool (*jerry_object_field_foreach_t) (const jerry_api_string_t *field_na
 /**
  * Returns whether the given jerry_api_value_t is void.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_void (const jerry_api_value_t *value_p);
 
 /**
  * Returns whether the given jerry_api_value_t is null.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_null (const jerry_api_value_t *value_p);
 
 /**
  * Returns whether the given jerry_api_value_t is undefined.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_undefined (const jerry_api_value_t *value_p);
 
 /**
  * Returns whether the given jerry_api_value_t has boolean type.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_boolean (const jerry_api_value_t *value_p);
 
 /**
@@ -176,19 +172,19 @@ jerry_api_value_is_boolean (const jerry_api_value_t *value_p);
  * More specifically, returns true if the type is JERRY_API_DATA_TYPE_FLOAT32,
  * JERRY_API_DATA_TYPE_FLOAT64 or JERRY_API_DATA_TYPE_UINT32, false otherwise.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_number (const jerry_api_value_t *value_p);
 
 /**
  * Returns whether the given jerry_api_value_t is string.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_string (const jerry_api_value_t *value_p);
 
 /**
  * Returns whether the given jerry_api_value_t is object.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_object (const jerry_api_value_t *value_p);
 
 /**
@@ -199,7 +195,7 @@ jerry_api_value_is_object (const jerry_api_value_t *value_p);
  * jerry_api_is_function() functiron return true for its v_object member,
  * otherwise false.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_value_is_function (const jerry_api_value_t *value_p);
 
 /**
@@ -207,7 +203,7 @@ jerry_api_value_is_function (const jerry_api_value_t *value_p);
  * If the given jerry_api_value_t structure has type other than
  * JERRY_API_DATA_TYPE_BOOLEAN, JERRY_ASSERT fails.
  */
-extern EXTERN_C bool
+extern  bool
 jerry_api_get_boolean_value (const jerry_api_value_t *value_p);
 
 /**
@@ -221,7 +217,7 @@ jerry_api_get_boolean_value (const jerry_api_value_t *value_p);
  * JERRY_API_DATA_TYPE_FLOAT64 the function returns the v_float64 member.
  * As long as the type is none of the above, JERRY_ASSERT falis.
  */
-extern EXTERN_C double
+extern  double
 jerry_api_get_number_value (const jerry_api_value_t *value_p);
 
 /**
@@ -229,7 +225,7 @@ jerry_api_get_number_value (const jerry_api_value_t *value_p);
  * If the given jerry_api_value_t structure has type other than
  * JERRY_API_DATA_TYPE_STRING, JERRY_ASSERT fails.
  */
-extern EXTERN_C jerry_api_string_t *
+extern  jerry_api_string_t *
 jerry_api_get_string_value (const jerry_api_value_t *value_p);
 
 /**
@@ -237,35 +233,35 @@ jerry_api_get_string_value (const jerry_api_value_t *value_p);
  * If the given jerry_api_value_t structure has type other than
  * JERRY_API_DATA_TYPE_OBJECT, JERRY_ASSERT fails.
  */
-extern EXTERN_C jerry_api_object_t *
+extern  jerry_api_object_t *
 jerry_api_get_object_value (const jerry_api_value_t *value_p);
 
 /**
  * Creates and returns a jerry_api_value_t with type
  * JERRY_API_DATA_TYPE_VOID.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_void_value (void);
 
 /**
  * Creates and returns a jerry_api_value_t with type
  * JERRY_API_DATA_TYPE_NULL.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_null_value (void);
 
 /**
  * Creates and returns a jerry_api_value_t with type
  * JERRY_API_DATA_TYPE_UNDEFINED.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_undefined_value (void);
 
 /**
  * Creates a JERRY_API_DATA_TYPE_BOOLEAN jerry_api_value_t from the given
  * boolean parameter and returns with it.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_boolean_value (bool value);
 
 /**
@@ -273,115 +269,115 @@ jerry_api_create_boolean_value (bool value);
  * with it.
  * The v_float64 member will be set and the will be JERRY_API_DATA_TYPE_FLOAT64.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_number_value (double value);
 
 /**
  * Creates a JERRY_API_DATA_TYPE_OBJECT type jerry_api_value_t from the
  * given jerry_api_object_t* parameter and returns with it.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_object_value (jerry_api_object_t *value);
 
 /**
  * Creates a JERRY_API_DATA_TYPE_STRING type jerry_api_value_t from the
  * given jerry_api_string_t* parameter and returns with it.
  */
-extern EXTERN_C jerry_api_value_t
+extern  jerry_api_value_t
 jerry_api_create_string_value (jerry_api_string_t *value);
 
-extern EXTERN_C ssize_t
+extern  ssize_t
 jerry_api_string_to_char_buffer (const jerry_api_string_t *, jerry_api_char_t *, ssize_t);
-extern EXTERN_C
+extern 
 jerry_api_string_t *jerry_api_acquire_string (jerry_api_string_t *);
-extern EXTERN_C
+extern 
 void jerry_api_release_string (jerry_api_string_t *);
 
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_acquire_object (jerry_api_object_t *);
-extern EXTERN_C
+extern 
 void jerry_api_release_object (jerry_api_object_t *);
 
-extern EXTERN_C
+extern 
 void jerry_api_release_value (jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 jerry_api_string_t *jerry_api_create_string (const jerry_api_char_t *);
-extern EXTERN_C
+extern 
 jerry_api_string_t *jerry_api_create_string_sz (const jerry_api_char_t *, jerry_api_size_t);
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_create_object (void);
 
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_create_array_object (jerry_api_size_t);
-extern EXTERN_C
+extern 
 bool jerry_api_set_array_index_value (jerry_api_object_t *, jerry_api_length_t, jerry_api_value_t *);
-extern EXTERN_C
+extern 
 bool jerry_api_get_array_index_value (jerry_api_object_t *, jerry_api_length_t, jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_create_error (jerry_api_error_t, const jerry_api_char_t *);
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_create_error_sz (jerry_api_error_t, const jerry_api_char_t *, jerry_api_size_t);
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_create_external_function (jerry_external_handler_t);
 
-extern EXTERN_C
+extern 
 bool jerry_api_is_function (const jerry_api_object_t *);
-extern EXTERN_C
+extern 
 bool jerry_api_is_constructor (const jerry_api_object_t *);
 
-extern EXTERN_C
+extern 
 bool jerry_api_add_object_field (jerry_api_object_t *, const jerry_api_char_t *, jerry_api_size_t,
                                  const jerry_api_value_t *, bool);
-extern EXTERN_C
+extern 
 bool jerry_api_delete_object_field (jerry_api_object_t *, const jerry_api_char_t *, jerry_api_size_t);
-extern EXTERN_C
+extern 
 bool jerry_api_get_object_field_value (jerry_api_object_t *, const jerry_api_char_t *, jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 bool jerry_api_get_object_field_value_sz (jerry_api_object_t *, const jerry_api_char_t *, jerry_api_size_t,
                                           jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 bool jerry_api_set_object_field_value (jerry_api_object_t *, const jerry_api_char_t *, const jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 bool jerry_api_set_object_field_value_sz (jerry_api_object_t *, const jerry_api_char_t *, jerry_api_size_t,
                                           const jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 bool jerry_api_foreach_object_field (jerry_api_object_t *, jerry_object_field_foreach_t, void *);
 
-extern EXTERN_C
+extern 
 bool jerry_api_get_object_native_handle (jerry_api_object_t *, uintptr_t *);
 
-extern EXTERN_C
+extern 
 void jerry_api_set_object_native_handle (jerry_api_object_t *, uintptr_t, jerry_object_free_callback_t);
 
-extern EXTERN_C
+extern 
 bool jerry_api_call_function (jerry_api_object_t *, jerry_api_object_t *, jerry_api_value_t *,
                               const jerry_api_value_t[], uint16_t);
 
-extern EXTERN_C
+extern 
 bool jerry_api_construct_object (jerry_api_object_t *, jerry_api_value_t *, const jerry_api_value_t[], uint16_t);
 
-extern EXTERN_C
+extern 
 jerry_completion_code_t jerry_api_eval (const jerry_api_char_t *, size_t, bool, bool, jerry_api_value_t *);
 
-extern EXTERN_C
+extern 
 jerry_api_object_t *jerry_api_get_global (void);
 
-extern EXTERN_C
+extern 
 void jerry_api_gc (void);
 
-extern EXTERN_C
+extern 
 void jerry_register_external_magic_strings (const jerry_api_char_ptr_t *, uint32_t, const jerry_api_length_t *);
 
-extern EXTERN_C
+extern 
 size_t jerry_parse_and_save_snapshot (const jerry_api_char_t *, size_t, bool, uint8_t *, size_t);
 
-extern EXTERN_C
+extern 
 jerry_completion_code_t jerry_exec_snapshot (const void *, size_t, bool, jerry_api_value_t *);
 
 /**

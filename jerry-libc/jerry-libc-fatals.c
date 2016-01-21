@@ -17,7 +17,7 @@
  * Jerry libc's fatal errors handlers
  */
 
-#include <stdio.h>
+#include "stdio-jerry.h"
 #include <stdlib.h>
 
 #include "jerry-libc-defs.h"

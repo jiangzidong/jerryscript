@@ -17,11 +17,7 @@
 #ifndef JERRY_FDLIBM_MATH_H
 #define JERRY_FDLIBM_MATH_H
 
-#ifdef __cplusplus
-# define EXTERN_C "C"
-#else /* !__cplusplus */
-# define EXTERN_C
-#endif /* !__cplusplus */
+
 
 // General Constants
 
@@ -53,28 +49,28 @@
 #define M_2_SQRTPI 1.1283791670955125738961589031215452
 
 // Trigonometric functions
-extern EXTERN_C double cos(double);
-extern EXTERN_C double sin(double);
-extern EXTERN_C double tan(double);
-extern EXTERN_C double acos(double);
-extern EXTERN_C double asin(double);
-extern EXTERN_C double atan(double);
-extern EXTERN_C double atan2(double, double);
+extern  double cos(double);
+extern  double sin(double);
+extern  double tan(double);
+extern  double acos(double);
+extern  double asin(double);
+extern  double atan(double);
+extern  double atan2(double, double);
 
 // Exponential and logarithmic functions
-extern EXTERN_C double exp(double);
-extern EXTERN_C double log(double);
+extern  double exp(double);
+extern  double log(double);
 
 // Power functions
-extern EXTERN_C double pow(double, double);
-extern EXTERN_C double sqrt(double);
+extern  double pow(double, double);
+extern  double sqrt(double);
 
 // Rounding and remainder functions
-extern EXTERN_C double ceil(double);
-extern EXTERN_C double floor(double);
+extern  double ceil(double);
+extern  double floor(double);
 
 // Other functions
-extern EXTERN_C double fabs(double);
-extern EXTERN_C double fmod(double, double);
+extern  double fabs(double);
+extern  double fmod(double, double);
 
 #endif /* !JERRY_FDLIBM_MATH_H */

@@ -16,13 +16,8 @@
 #ifndef JERRY_PORT_H
 #define JERRY_PORT_H
 
-#include <stdio.h>
+#include "stdio-jerry.h"
 
-#ifdef __cplusplus
-# define EXTERN_C "C"
-#else /* !__cplusplus */
-# define EXTERN_C
-#endif /* !__cplusplus */
 
 /** \addtogroup jerry Jerry engine port
  * @{
@@ -31,13 +26,15 @@
 /**
  * Target port functions for console output
  */
-extern EXTERN_C
-int jerry_port_logmsg (FILE* stream, const char* format, ...);
+/*
+extern 
+int jerry_port_logmsg (const char* format, ...);
 
-extern EXTERN_C
+extern 
 int jerry_port_errormsg (const char* format, ...);
+*/
 
-extern EXTERN_C
+extern 
 int jerry_port_putchar (int c);
 
 /**

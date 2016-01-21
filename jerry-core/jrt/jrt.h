@@ -16,8 +16,8 @@
 #ifndef JERRY_GLOBALS_H
 #define JERRY_GLOBALS_H
 
-#include <stdio.h>
-#include <string.h>
+#include "stdio-jerry.h"
+#include "string-jerry.h"
 
 #include "jerry.h"
 #include "jrt-types.h"
@@ -99,7 +99,7 @@ extern void __noreturn jerry_unimplemented (const char *, const char *, const ch
   { \
     if (lvl <= jerry_debug_level && jerry_log_file) \
     { \
-      jerry_port_logmsg (jerry_log_file, __VA_ARGS__); \
+      printf (__VA_ARGS__); \
     } \
   } \
   while (0)
@@ -108,25 +108,25 @@ extern void __noreturn jerry_unimplemented (const char *, const char *, const ch
 #define JERRY_DDLOG(...) JERRY_LOG (2, __VA_ARGS__)
 #define JERRY_DDDLOG(...) JERRY_LOG (3, __VA_ARGS__)
 #else /* !JERRY_ENABLE_LOG */
-#define JERRY_DLOG(...) \
+#define JERRY_DLOG(...) /*\
   do \
   { \
     if (false) \
     { \
       jerry_ref_unused_variables (0, __VA_ARGS__); \
     } \
-  } while (0)
+  } while (0)*/
 #define JERRY_DDLOG(...) JERRY_DLOG (__VA_ARGS__)
 #define JERRY_DDDLOG(...) JERRY_DLOG (__VA_ARGS__)
 #endif /* !JERRY_ENABLE_LOG */
 
-#define JERRY_ERROR_MSG(...) jerry_port_errormsg (__VA_ARGS__)
+#define JERRY_ERROR_MSG(...) JERRY_DLOG (__VA_ARGS__)
 #define JERRY_WARNING_MSG(...) JERRY_ERROR_MSG (__VA_ARGS__)
 
 /**
  * Mark for unreachable points and unimplemented cases
  */
-template<typename... values> extern void jerry_ref_unused_variables (const values & ... unused);
+//template<typename... values> extern void jerry_ref_unused_variables (const values & ... unused);
 
 #ifndef JERRY_NDEBUG
 #define JERRY_UNREACHABLE() \
@@ -144,10 +144,6 @@ template<typename... values> extern void jerry_ref_unused_variables (const value
 #define JERRY_UNIMPLEMENTED_REF_UNUSED_VARS(comment, ...) \
   do \
   { \
-    if (false) \
-    { \
-      jerry_ref_unused_variables (0, __VA_ARGS__); \
-    } \
     jerry_unimplemented (comment, __FILE__, __func__, __LINE__); \
   } while (0)
 #else /* !JERRY_NDEBUG */
@@ -166,10 +162,6 @@ template<typename... values> extern void jerry_ref_unused_variables (const value
 #define JERRY_UNIMPLEMENTED_REF_UNUSED_VARS(comment, ...) \
   do \
   { \
-    if (false) \
-    { \
-      jerry_ref_unused_variables (0, __VA_ARGS__); \
-    } \
     jerry_unimplemented (comment, NULL, NULL, 0); \
   } while (0)
 #endif /* JERRY_NDEBUG */
@@ -214,17 +206,6 @@ extern void __noreturn jerry_fatal (jerry_fatal_code_t);
 #define JERRY_MIN(v1, v2) ((v1 < v2) ? v1 : v2)
 #define JERRY_MAX(v1, v2) ((v1 < v2) ? v2 : v1)
 
-/**
- * Placement new operator (constructs an object on a pre-allocated buffer)
- *
- * Our version of the libc library doesn't support calling the constructors and destructors of the static variables.
- * It is proposed to use placement new operator. Generally it is available via #include <new>,
- * To fix the unavailability of the header in some configurations placement new operator is implemented here.
- */
-inline void *operator new (size_t, void *where)
-{
-  return where;
-} /* operator new */
 
 /**
  * Read data from a specified buffer.

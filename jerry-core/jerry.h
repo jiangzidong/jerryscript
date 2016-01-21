@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include "jerry-api.h"
-#include "jerry-port.h"
+
 
 /** \addtogroup jerry Jerry engine interface
  * @{
@@ -71,7 +71,7 @@ extern const char *jerry_branch_name;
 
 #ifdef JERRY_ENABLE_LOG
 extern int jerry_debug_level;
-extern FILE *jerry_log_file;
+//extern FILE *jerry_log_file;
 #endif /* JERRY_ENABLE_LOG */
 
 /**
@@ -79,16 +79,16 @@ extern FILE *jerry_log_file;
  */
 typedef void (*jerry_error_callback_t) (jerry_fatal_code_t);
 
-extern EXTERN_C void jerry_init (jerry_flag_t);
-extern EXTERN_C void jerry_cleanup (void);
+extern  void jerry_init (jerry_flag_t);
+extern  void jerry_cleanup (void);
 
-extern EXTERN_C void jerry_get_memory_limits (size_t *, size_t *);
-extern EXTERN_C void jerry_reg_err_callback (jerry_error_callback_t);
+extern  void jerry_get_memory_limits (size_t *, size_t *);
+extern  void jerry_reg_err_callback (jerry_error_callback_t);
 
-extern EXTERN_C bool jerry_parse (const jerry_api_char_t *, size_t);
-extern EXTERN_C jerry_completion_code_t jerry_run (void);
+extern  bool jerry_parse (const jerry_api_char_t *, size_t);
+extern  jerry_completion_code_t jerry_run (void);
 
-extern EXTERN_C jerry_completion_code_t
+extern  jerry_completion_code_t
 jerry_run_simple (const jerry_api_char_t *, size_t, jerry_flag_t);
 
 #ifdef CONFIG_JERRY_ENABLE_CONTEXTS
@@ -101,11 +101,11 @@ jerry_run_simple (const jerry_api_char_t *, size_t, jerry_flag_t);
  */
 typedef struct jerry_ctx_t jerry_ctx_t;
 
-extern EXTERN_C jerry_ctx_t *jerry_new_ctx (void);
-extern EXTERN_C void jerry_cleanup_ctx (jerry_ctx_t *);
+extern  jerry_ctx_t *jerry_new_ctx (void);
+extern  void jerry_cleanup_ctx (jerry_ctx_t *);
 
-extern EXTERN_C void jerry_push_ctx (jerry_ctx_t *);
-extern EXTERN_C void jerry_pop_ctx (void);
+extern  void jerry_push_ctx (jerry_ctx_t *);
+extern  void jerry_pop_ctx (void);
 
 /**
  * @}
