@@ -19,8 +19,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "ctype-jerry.h"
 
-typedef long ssize_t;
 
 
 /** \addtogroup jerry Jerry engine interface

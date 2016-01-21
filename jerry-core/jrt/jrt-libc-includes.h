@@ -16,12 +16,12 @@
 #ifndef JRT_LIBC_INCLUDES_H
 #define JRT_LIBC_INCLUDES_H
 
+#include "ctype-jerry.h"
 #include "setjmp-jerry.h"
 #include <stdarg.h>
 #include "stdio-jerry.h"
 #include "stdlib-jerry.h"
 #include "string-jerry.h"
 
-typedef long ssize_t;
 
 #endif /* !JRT_LIBC_INCLUDES_H */
