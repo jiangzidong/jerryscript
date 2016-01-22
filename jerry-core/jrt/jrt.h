@@ -22,6 +22,7 @@
 #include "jerry.h"
 #include "jrt-types.h"
 
+#define JERRY_MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
 /**
  * Attributes
  */
