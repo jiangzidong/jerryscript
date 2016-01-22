@@ -92,7 +92,7 @@ void mem_heap_valgrind_freya_mempool_request (void)
 /**
  * Length type of the block
  */
-typedef enum : uint8_t
+typedef enum
 {
   GENERAL     = 0, /**< general (may be multi-chunk) block
                     *
@@ -388,7 +388,7 @@ void* mem_heap_alloc_block_internal (size_t size_in_bytes, /**< size of region t
                                      mem_heap_alloc_term_t alloc_term) /**< expected allocation term */
 {
   JERRY_ASSERT (size_in_bytes != 0);
-  JERRY_ASSERT (length_type != mem_block_length_type_t::ONE_CHUNKED
+  JERRY_ASSERT (length_type != ONE_CHUNKED
                 || size_in_bytes == mem_heap_get_chunked_block_data_size ());
 
   mem_check_heap ();
@@ -593,7 +593,7 @@ mem_heap_alloc_block (size_t size_in_bytes,             /**< size of region to a
   else
   {
     return mem_heap_alloc_block_try_give_memory_back (size_in_bytes,
-                                                      mem_block_length_type_t::GENERAL,
+                                                      GENERAL,
                                                       alloc_term);
   }
 } /* mem_heap_alloc_block */
@@ -617,7 +617,7 @@ void*
 mem_heap_alloc_chunked_block (mem_heap_alloc_term_t alloc_term) /**< expected allocation term */
 {
   return mem_heap_alloc_block_try_give_memory_back (mem_heap_get_chunked_block_data_size (),
-                                                    mem_block_length_type_t::ONE_CHUNKED,
+                                                    ONE_CHUNKED,
                                                     alloc_term);
 } /* mem_heap_alloc_chunked_block */
 
