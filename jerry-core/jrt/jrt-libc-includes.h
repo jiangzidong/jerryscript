@@ -23,5 +23,5 @@
 #include "stdlib-jerry.h"
 #include "string-jerry.h"
 
-
+#include "jerry-port.h"
 #endif /* !JRT_LIBC_INCLUDES_H */
