@@ -1918,13 +1918,13 @@ lexer_init (const jerry_api_char_t *source, /**< script source */
 {
   empty_token.type = TOK_EMPTY;
   empty_token.uid = 0;
-  empty_token.loc = {0, false};
+  empty_token.loc = LIT_ITERATOR_POS_ZERO;
 
   saved_token = prev_token = sent_token = empty_token;
 
   if (!lit_is_utf8_string_valid (source, (lit_utf8_size_t) source_size))
   {
-    PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX, "Invalid source encoding", {0, false});
+    PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX, "Invalid source encoding", LIT_ITERATOR_POS_ZERO);
   }
 
   src_iter = lit_utf8_iterator_create (source, (lit_utf8_size_t) source_size);
