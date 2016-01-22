@@ -261,7 +261,7 @@ typedef struct
 /**
  * Initializer for empty token
  */
-#define TOKEN_EMPTY_INITIALIZER {LIT_ITERATOR_POS_ZERO, 0, TOK_EMPTY, JSP_TOKEN_FLAG__NO_FLAGS}
+#define TOKEN_EMPTY_INITIALIZER {{0, false}, 0, TOK_EMPTY, JSP_TOKEN_FLAG__NO_FLAGS}
 
 void lexer_init (const jerry_api_char_t *, size_t, bool);
 

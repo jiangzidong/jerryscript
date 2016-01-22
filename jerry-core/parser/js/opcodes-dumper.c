@@ -775,7 +775,7 @@ jsp_alloc_reg_for_temp (void)
      * FIXME:
      *       Implement mechanism, allowing reusage of register variables
      */
-    PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX, "Not enough register variables", LIT_ITERATOR_POS_ZERO);
+    PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX, "Not enough register variables", {0, false});
   }
 
   if (jsp_reg_max_for_temps < next_reg)
@@ -1885,7 +1885,7 @@ rewrite_varg_header_set_args_count (jsp_ctx_t *ctx_p, /**< parser context */
       {
         PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX,
                      "No more than 255 formal parameters / arguments are currently supported",
-                     LIT_ITERATOR_POS_ZERO);
+                     {0, false});
       }
       om.op.data.func_expr_n.arg_list = (vm_idx_t) args_count;
       dumper_rewrite_op_meta (ctx_p, pos, om);
@@ -1897,7 +1897,7 @@ rewrite_varg_header_set_args_count (jsp_ctx_t *ctx_p, /**< parser context */
       {
         PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX,
                      "No more than 255 formal parameters are currently supported",
-                     LIT_ITERATOR_POS_ZERO);
+                     {0, false});
       }
       om.op.data.func_decl_n.arg_list = (vm_idx_t) args_count;
       dumper_rewrite_op_meta (ctx_p, pos, om);
@@ -1910,7 +1910,7 @@ rewrite_varg_header_set_args_count (jsp_ctx_t *ctx_p, /**< parser context */
       {
         PARSE_ERROR (JSP_EARLY_ERROR_SYNTAX,
                      "No more than 65535 formal parameters are currently supported",
-                     LIT_ITERATOR_POS_ZERO);
+                     {0, false});
       }
       om.op.data.obj_decl.list_1 = (vm_idx_t) (args_count >> 8);
       om.op.data.obj_decl.list_2 = (vm_idx_t) (args_count & 0xffu);

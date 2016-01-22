@@ -260,7 +260,7 @@ lit_utf8_iterator_create (const lit_utf8_byte_t *utf8_buf_p, /**< utf-8 string *
   {
     utf8_buf_p,
     buf_size,
-    LIT_ITERATOR_POS_ZERO
+    {0, false}
   };
 
   return buf_iter;
