@@ -237,13 +237,10 @@ typedef struct jsp_state_t
 
   union u
   {
-    u (void)
-    {
-    }
 
     struct expression
     {
-      union u
+      union
       {
         struct
         {
@@ -291,15 +288,15 @@ typedef struct jsp_state_t
 
     struct statement
     {
-      union u
+      union
       {
         struct iterational
         {
-          union u
+          union
           {
             struct loop_for_in
             {
-              union u
+              union
               {
                 locus iterator_expr_loc;
                 locus body_loc;
@@ -312,7 +309,7 @@ typedef struct jsp_state_t
 
             struct loop_while
             {
-              union u
+              union
               {
                 locus cond_expr_start_loc;
                 locus end_loc;
