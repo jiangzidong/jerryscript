@@ -24,7 +24,7 @@
 #include "rcs-records.h"
 #include "scopes-tree.h"
 
-typedef enum type_t : uint8_t
+typedef enum type_t
 {
   EMPTY, /**< empty operand */
   STRING_LITERAL, /**< operand contains string literal value */
