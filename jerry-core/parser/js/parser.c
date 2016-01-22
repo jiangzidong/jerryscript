@@ -5616,7 +5616,7 @@ parser_parse_program (const jerry_api_char_t *source_p, /**< source code buffer 
 
     if (parser_show_instrs)
     {
-      lit_dump_literals ();
+      lit_dump ();
       bc_print_instrs (root_bc_header_p);
     }
 

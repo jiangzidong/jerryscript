@@ -49,7 +49,7 @@ lit_finalize ()
  * Dump records from the literal storage
  */
 void
-lit_dump_literals ()
+lit_dump ()
 {
   lit_dump_literals (&rcs_lit_storage);
 } /* lit_dump_literals */
