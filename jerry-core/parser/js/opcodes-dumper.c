@@ -264,7 +264,7 @@ jsp_make_reg_operand (vm_idx_t reg_index) /**< register index */
    * the check should be restored.
    */
   // JERRY_ASSERT (reg_index >= VM_IDX_GENERAL_VALUE_FIRST);
-  static_assert (VM_IDX_GENERAL_VALUE_FIRST == 0, "See comment above");
+  JERRY_STATIC_ASSERT (VM_IDX_GENERAL_VALUE_FIRST == 0);
 
   JERRY_ASSERT (reg_index <= VM_IDX_GENERAL_VALUE_LAST);
 

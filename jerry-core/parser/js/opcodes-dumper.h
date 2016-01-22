@@ -90,7 +90,7 @@ extern vm_idx_t jsp_operand_get_idx_const (jsp_operand_t);
 extern ecma_simple_value_t jsp_operand_get_simple_value (jsp_operand_t);
 extern uint8_t jsp_operand_get_smallint_value (jsp_operand_t);
 
-static_assert (sizeof (jsp_operand_t) == 4, "");
+JERRY_STATIC_ASSERT (sizeof (jsp_operand_t) == 4);
 
 typedef enum __attr_packed___
 {
