@@ -107,7 +107,7 @@ typedef struct
 /**
  * Value of an iterator, positioned to beginning of a string
  */
-//#define {0, false} {0, false}
+#define LIT_ITERATOR_POS_ZERO (lit_utf8_iterator_pos_t){0, false}
 
 /**
  * Represents an iterator over utf-8 buffer
