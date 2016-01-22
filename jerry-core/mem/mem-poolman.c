@@ -72,7 +72,7 @@ typedef struct mem_pool_chunk_t
      */
     struct
     {
-      mem_pool_chunk_t *next_p; /**< global list of free pool chunks */
+      struct mem_pool_chunk_t *next_p; /**< global list of free pool chunks */
     } free;
 
     /**
