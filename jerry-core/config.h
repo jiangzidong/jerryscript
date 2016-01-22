@@ -143,7 +143,7 @@
 /**
  * Implementation should correspond to ECMA Compact Profile
  */
-// #define CONFIG_ECMA_COMPACT_PROFILE
+#define CONFIG_ECMA_COMPACT_PROFILE
 
 
 #define CONFIG_ECMA_COMPACT_PROFILE_DISABLE_NUMBER_BUILTIN
