@@ -24,7 +24,7 @@
 #include "rcs-records.h"
 #include "scopes-tree.h"
 
-typedef enum type_t
+typedef enum __attr_packed___
 {
   EMPTY, /**< empty operand */
   STRING_LITERAL, /**< operand contains string literal value */
