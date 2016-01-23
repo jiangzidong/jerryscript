@@ -146,6 +146,9 @@ lit_id_hash_table_lookup (lit_id_hash_table *table_p, /**< table's header */
   return table_p->buckets[block_id][uid];
 } /* lit_id_hash_table_lookup */
 
+
+
+#ifdef JERRY_ENABLE_SNAPSHOT
 /**
  * Dump literal identifiers hash table to snapshot buffer
  *
@@ -347,7 +350,8 @@ lit_id_hash_table_load_from_snapshot (size_t blocks_count, /**< number of byte-c
   return true;
 } /* lit_id_hash_table_load_from_snapshot */
 
-
+#endif /* JERRY_ENABLE_SNAPSHOT */
+  
 /**
  * @}
  * @}
