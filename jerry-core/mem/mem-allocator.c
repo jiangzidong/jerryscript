@@ -86,7 +86,7 @@ mem_finalize (bool is_show_mem_stats) /**< show heap memory stats
 uintptr_t
 mem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 {
-  JERRY_ASSERT (mem_is_heap_pointer (pointer_p));
+  //JERRY_ASSERT (mem_is_heap_pointer (pointer_p));
 
   return mem_heap_compress_pointer (pointer_p);
 } /* mem_compress_pointer */
