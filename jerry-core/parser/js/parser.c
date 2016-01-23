@@ -234,8 +234,7 @@ typedef struct jsp_state_t
                                                             *     - break
                                                             *     - continue
                                                             *     - throw */
-
-  union u
+ union
   {
 
     struct expression
@@ -249,42 +248,42 @@ typedef struct jsp_state_t
           vm_idx_t reg_alloc_saved_state1;
           vm_idx_t reg_alloc_saved_state2;
         } varg_sequence;
-        JERRY_STATIC_ASSERT (sizeof (varg_sequence) == 8); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (varg_sequence) == 8); // Please, update size if changed
 
         struct
         {
           jsp_operand_t prop_name;
           bool is_setter;
         } accessor_prop_decl;
-        JERRY_STATIC_ASSERT (sizeof (accessor_prop_decl) == 6); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (accessor_prop_decl) == 6); // Please, update size if changed
 
         struct
         {
           vm_instr_counter_t rewrite_chain; /**< chain of jmp instructions to rewrite */
         } logical_and;
-        JERRY_STATIC_ASSERT (sizeof (logical_and) == 2); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (logical_and) == 2); // Please, update size if changed
 
         struct
         {
           vm_instr_counter_t rewrite_chain; /**< chain of jmp instructions to rewrite */
         } logical_or;
-        JERRY_STATIC_ASSERT (sizeof (logical_or) == 2); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (logical_or) == 2); // Please, update size if changed
 
         struct
         {
           vm_instr_counter_t conditional_check_pos;
           vm_instr_counter_t jump_to_end_pos;
         } conditional;
-        JERRY_STATIC_ASSERT (sizeof (conditional) == 4); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (conditional) == 4); // Please, update size if changed
       } u;
-      JERRY_STATIC_ASSERT (sizeof (u) == 8); // Please, update size if changed
+      //JERRY_STATIC_ASSERT (sizeof (u) == 8); // Please, update size if changed
 
       jsp_operand_t operand; /**< operand, associated with expression */
       jsp_operand_t prop_name_operand; /**< operand, describing second part of a value-based reference,
                                         *   or empty operand (for Identifier references, values, or constants) */
       jsp_token_type_t token_type; /**< token, related to current and, if binary, to previous expression */
     } expression;
-    JERRY_STATIC_ASSERT (sizeof (expression) == 20); // Please, update size if changed
+    //JERRY_STATIC_ASSERT (sizeof (expression) == 20); // Please, update size if changed
 
     struct statement
     {
@@ -305,7 +304,7 @@ typedef struct jsp_state_t
               lit_cpointer_t var_name_lit_cp;
               vm_instr_counter_t header_pos;
             } loop_for_in;
-            JERRY_STATIC_ASSERT (sizeof (loop_for_in) == 8); // Please, update size if changed
+            //JERRY_STATIC_ASSERT (sizeof (loop_for_in) == 8); // Please, update size if changed
 
             struct loop_while
             {
@@ -318,13 +317,13 @@ typedef struct jsp_state_t
               vm_instr_counter_t next_iter_tgt_pos;
               vm_instr_counter_t jump_to_end_pos;
             } loop_while;
-            JERRY_STATIC_ASSERT (sizeof (loop_while) == 8); // Please, update size if changed
+            //JERRY_STATIC_ASSERT (sizeof (loop_while) == 8); // Please, update size if changed
 
             struct loop_do_while
             {
               vm_instr_counter_t next_iter_tgt_pos;
             } loop_do_while;
-            JERRY_STATIC_ASSERT (sizeof (loop_do_while) == 2); // Please, update size if changed
+            //JERRY_STATIC_ASSERT (sizeof (loop_do_while) == 2); // Please, update size if changed
 
             struct loop_for
             {
@@ -343,21 +342,21 @@ typedef struct jsp_state_t
               vm_instr_counter_t next_iter_tgt_pos;
               vm_instr_counter_t jump_to_end_pos;
             } loop_for;
-            JERRY_STATIC_ASSERT (sizeof (loop_for) == 12); // Please, update size if changed
+            //JERRY_STATIC_ASSERT (sizeof (loop_for) == 12); // Please, update size if changed
           } u;
-          JERRY_STATIC_ASSERT (sizeof (u) == 12); // Please, update size if changed
+          //JERRY_STATIC_ASSERT (sizeof (u) == 12); // Please, update size if changed
 
           vm_instr_counter_t continues_rewrite_chain;
           vm_instr_counter_t continue_tgt_oc;
         } iterational;
-        JERRY_STATIC_ASSERT (sizeof (iterational) == 16); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (iterational) == 16); // Please, update size if changed
 
         struct if_statement
         {
           vm_instr_counter_t conditional_check_pos;
           vm_instr_counter_t jump_to_end_pos;
         } if_statement;
-        JERRY_STATIC_ASSERT (sizeof (if_statement) == 4); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (if_statement) == 4); // Please, update size if changed
 
         struct switch_statement
         {
@@ -372,13 +371,13 @@ typedef struct jsp_state_t
           vm_idx_t saved_reg_next;
           vm_idx_t saved_reg_max_for_temps;
         } switch_statement;
-        JERRY_STATIC_ASSERT (sizeof (switch_statement) == 12); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (switch_statement) == 12); // Please, update size if changed
 
         struct with_statement
         {
           vm_instr_counter_t header_pos;
         } with_statement;
-        JERRY_STATIC_ASSERT (sizeof (with_statement) == 2); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (with_statement) == 2); // Please, update size if changed
 
         struct try_statement
         {
@@ -386,19 +385,19 @@ typedef struct jsp_state_t
           vm_instr_counter_t catch_pos;
           vm_instr_counter_t finally_pos;
         } try_statement;
-        JERRY_STATIC_ASSERT (sizeof (try_statement) == 6); // Please, update size if changed
+        //JERRY_STATIC_ASSERT (sizeof (try_statement) == 6); // Please, update size if changed
       } u;
-      JERRY_STATIC_ASSERT (sizeof (u) == 16); // Please, update size if changed
+      //JERRY_STATIC_ASSERT (sizeof (u) == 16); // Please, update size if changed
 
       vm_instr_counter_t breaks_rewrite_chain;
     } statement;
-    JERRY_STATIC_ASSERT (sizeof (statement) == 20); // Please, update size if changed
+    //JERRY_STATIC_ASSERT (sizeof (statement) == 20); // Please, update size if changed
 
     struct named_label
     {
       lit_cpointer_t name_cp;
     } named_label;
-    JERRY_STATIC_ASSERT (sizeof (named_label) == 2); // Please, update size if changed
+    //JERRY_STATIC_ASSERT (sizeof (named_label) == 2); // Please, update size if changed
 
     struct source_elements
     {
@@ -417,9 +416,9 @@ typedef struct jsp_state_t
         mem_cpointer_t parent_bc_header_cp;
       } u;
     } source_elements;
-    JERRY_STATIC_ASSERT (sizeof (source_elements) == 10); // Please, update size if changed
+    //JERRY_STATIC_ASSERT (sizeof (source_elements) == 10); // Please, update size if changed
   } u;
-  JERRY_STATIC_ASSERT (sizeof (u) == 20); // Please, update size if changed
+  //JERRY_STATIC_ASSERT (sizeof (u) == 20); // Please, update size if changed
 } jsp_state_t;
 
 JERRY_STATIC_ASSERT (sizeof (jsp_state_t) == 28); // Please, update if size is changed
