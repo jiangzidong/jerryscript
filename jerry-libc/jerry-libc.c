@@ -71,6 +71,8 @@ printf (const char *format, ...)
   return ret;
 }
 
+#ifdef MYSTRING101
+
 #ifdef __GNUC__
 /*
  * Making GCC not to replace:
@@ -286,6 +288,8 @@ strlen (const char *s)
 
   return i;
 }
+
+#endif
 
 /**
  * Generate pseudo-random integer
