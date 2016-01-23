@@ -64,7 +64,11 @@ static unsigned int libc_random_gen_state[4] = { 1455997910, 1999515274, 1234451
 int
 printf (const char *format, ...)
 {
-  return pr_info(LOG_MODULE_MAIN, format, ...);
+  va_list args;
+  va_start(args, format);
+  int ret = pr_info(LOG_MODULE_MAIN, format, args);
+  va_end(args);
+  return ret;
 }
 
 #ifdef __GNUC__
