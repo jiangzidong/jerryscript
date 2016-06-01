@@ -1671,6 +1671,7 @@ jerry_init (jerry_flag_t flags) /**< combination of Jerry flags */
 void
 jerry_cleanup (void)
 {
+  ecma_gc_run ();
   jerry_assert_api_available ();
 
   bool is_show_mem_stats = ((jerry_flags & JERRY_FLAG_MEM_STATS) != 0);

@@ -33,6 +33,7 @@
 #define JERRY_INTERNAL
 #include "jerry-internal.h"
 
+#include "ecma-lex-env.h"
 /* TODO: Extract GC to a separate component */
 
 /** \addtogroup ecma ECMA
@@ -328,6 +329,7 @@ ecma_gc_mark_property (ecma_property_t *property_p) /**< property */
 void
 ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
 {
+  printf("mark obj, [0x%x]\n", object_p);
   JERRY_ASSERT (object_p != NULL);
   JERRY_ASSERT (ecma_gc_is_object_visited (object_p));
 
@@ -336,6 +338,8 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
   if (ecma_is_lexical_environment (object_p))
   {
     ecma_object_t *lex_env_p = ecma_get_lex_env_outer_reference (object_p);
+    printf("lex env, [0x%x]\n", object_p);
+    printf(">> outer, [0x%x]\n", lex_env_p);
     if (lex_env_p != NULL)
     {
       ecma_gc_set_object_visited (lex_env_p, true);
@@ -344,6 +348,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
     if (ecma_get_lex_env_type (object_p) != ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE)
     {
       ecma_object_t *binding_object_p = ecma_get_lex_env_binding_object (object_p);
+      printf(">> bind, [0x%x]\n", binding_object_p);
       ecma_gc_set_object_visited (binding_object_p, true);
 
       traverse_properties = false;
@@ -480,6 +485,9 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
 void
 ecma_gc_run (void)
 {
+  printf("GC START\n");
+  printf("new object: %d, current object: %d\n", ecma_gc_new_objects_since_last_gc, ecma_gc_objects_number);
+  mem_stats_print();
   ecma_gc_new_objects_since_last_gc = 0;
 
   JERRY_ASSERT (ecma_gc_objects_lists[ECMA_GC_COLOR_BLACK] == NULL);
@@ -559,6 +567,11 @@ ecma_gc_run (void)
   /* Free RegExp bytecodes stored in cache */
   re_cache_gc_run ();
 #endif /* !CONFIG_ECMA_COMPACT_PROFILE_DISABLE_REGEXP_BUILTIN */
+  printf("GC DONE\n");
+  mem_pools_collect_empty ();
+  printf("current object: %d\n", ecma_gc_objects_number);
+  mem_stats_print();
+  printf("=========\n\n\n");
 } /* ecma_gc_run */
 
 /**

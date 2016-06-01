@@ -657,21 +657,12 @@ mem_heap_stats_print (void)
           "  Waste = %zu bytes\n"
           "  Peak allocated = %zu bytes\n"
           "  Peak waste = %zu bytes\n"
-          "  Skip-ahead ratio = %zu.%04zu\n"
-          "  Average alloc iteration = %zu.%04zu\n"
-          "  Average free iteration = %zu.%04zu\n"
           "\n",
           mem_heap_stats.size,
           mem_heap_stats.allocated_bytes,
           mem_heap_stats.waste_bytes,
           mem_heap_stats.peak_allocated_bytes,
-          mem_heap_stats.peak_waste_bytes,
-          mem_heap_stats.skip_count / mem_heap_stats.nonskip_count,
-          mem_heap_stats.skip_count % mem_heap_stats.nonskip_count * 10000 / mem_heap_stats.nonskip_count,
-          mem_heap_stats.alloc_iter_count / mem_heap_stats.alloc_count,
-          mem_heap_stats.alloc_iter_count % mem_heap_stats.alloc_count * 10000 / mem_heap_stats.alloc_count,
-          mem_heap_stats.free_iter_count / mem_heap_stats.free_count,
-          mem_heap_stats.free_iter_count % mem_heap_stats.free_count * 10000 / mem_heap_stats.free_count);
+          mem_heap_stats.peak_waste_bytes);
 } /* mem_heap_stats_print */
 
 /**
