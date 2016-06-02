@@ -38,6 +38,20 @@
 #include "ecma-property-hashmap.h"
 #define ECMA_PROPERTY_HASHMAP_GET_TOTAL_SIZE(max_property_count) \
   (sizeof (ecma_property_hashmap_t) + (max_property_count * sizeof (mem_cpointer_t)) + (max_property_count >> 3))
+
+
+
+typedef struct
+{
+  uint16_t size; /* Size of string in bytes */
+  uint16_t length; /* Number of characters in the string */
+} ecma_string_heap_header_t;
+
+const char* string_type[]={"lit","ascki","utf8", "num", "uint", "magic", "m_ex"};
+const char* simple_value[]={"empty", "undefined", "null", "false", "true", "array_hole", "reg_ref"};
+const char* object_type[]={"gene", "func", "bultin-func", "arr", "str", "ext-func", "bound-func", "argu"};
+const char* env_type[]={"","","","","","decl","obj","this+obj"};
+
 /* TODO: Extract GC to a separate component */
 
 /** \addtogroup ecma ECMA
@@ -335,21 +349,9 @@ ecma_gc_mark_property (ecma_property_t *property_p) /**< property */
  *
  **************************************/
 
-extern uint32_t ecma_string_to_char_array(const ecma_string_t *string_p, char *buf, uint32_t buf_size);
-extern void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index);
-extern void show_value_info(ecma_value_t value, uint32_t depth);
-extern void show_property_name(ecma_string_t *name_p, uint32_t depth, ecma_property_t *property_p);
 
-typedef struct
-{
-  uint16_t size; /* Size of string in bytes */
-  uint16_t length; /* Number of characters in the string */
-} ecma_string_heap_header_t;
 
-const char* string_type[]={"lit","ascki","utf8", "num", "uint", "magic", "m_ex"};
-const char* simple_value[]={"empty", "undefined", "null", "false", "true", "array_hole", "reg_ref"};
-
-uint32_t ecma_string_to_char_array(const ecma_string_t *string_p, char *buf, uint32_t buf_size)
+static uint32_t ecma_string_to_char_array(const ecma_string_t *string_p, char *buf, uint32_t buf_size)
 {
   uint32_t heap_size = 0;
   if (ecma_string_get_size (string_p) > buf_size) {
@@ -399,30 +401,30 @@ uint32_t ecma_string_to_char_array(const ecma_string_t *string_p, char *buf, uin
 }
 
 
-void show_property_name(ecma_string_t *name_p, uint32_t depth, ecma_property_t *property_p) {
+static void show_property_name(ecma_string_t *name_p, uint32_t depth, ecma_property_t *property_p) {
   for(uint32_t i = 0; i<depth; i++) {
     printf("\t");
   }
   char prop_name[20];
   uint32_t refs;
   if(ECMA_PROPERTY_GET_TYPE (property_p)==ECMA_PROPERTY_TYPE_INTERNAL){
-    printf("name:internal_%d\n", ECMA_PROPERTY_GET_INTERNAL_PROPERTY_TYPE (property_p));
+    printf("<k>:internal_%d\n", ECMA_PROPERTY_GET_INTERNAL_PROPERTY_TYPE (property_p));
   } else {
     refs = name_p->refs_and_container >> 3;
     uint32_t size = ecma_string_to_char_array(name_p, prop_name, 20);
     const char* type = string_type[ECMA_STRING_GET_CONTAINER (name_p)];
-    printf("name:%s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", prop_name, name_p, type, refs, size);
+    printf("<k>:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", prop_name, name_p, type, refs, size);
   }
 }
 
-void show_value_info(ecma_value_t value, uint32_t depth) {
+static void show_value_info(ecma_value_t value, uint32_t depth) {
   for(uint32_t i = 0; i<depth; i++) {
     printf("\t");
   }
   switch(value & ECMA_VALUE_TYPE_MASK) {
     case ECMA_TYPE_OBJECT:
     {
-      printf("value:OBJ [0x%x]\n", ecma_get_object_from_value(value));
+      printf("<v>:OBJ [0x%x]\n", ecma_get_object_from_value(value));
       break;
     }
     case ECMA_TYPE_STRING:
@@ -433,7 +435,7 @@ void show_value_info(ecma_value_t value, uint32_t depth) {
       refs = str_p->refs_and_container >> 3;
       uint32_t size = ecma_string_to_char_array(str_p, str_buf, 20);
       const char* type = string_type[ECMA_STRING_GET_CONTAINER (str_p)];
-      printf("value:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", str_buf, str_p, type, refs, size);
+      printf("<v>:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", str_buf, str_p, type, refs, size);
       break;
     }
     case ECMA_TYPE_NUMBER:
@@ -441,20 +443,20 @@ void show_value_info(ecma_value_t value, uint32_t depth) {
       ecma_number_t *num_p = ecma_get_number_from_value(value);
       ecma_number_t num = *num_p;
       if (num>=0) {
-        printf("value:NUM %zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000 ,CONFIG_MEM_POOL_CHUNK_SIZE);
+        printf("<v>:NUM %zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000 ,CONFIG_MEM_POOL_CHUNK_SIZE);
       } else {
         num = -num;
-        printf("value:NUM -%zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000, CONFIG_MEM_POOL_CHUNK_SIZE);
+        printf("<v>:NUM -%zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000, CONFIG_MEM_POOL_CHUNK_SIZE);
       }
       break;
     }
     default:
     {
-      printf("value:SIM %s\n", simple_value[value>>ECMA_VALUE_SHIFT]);
+      printf("<v>:SIM %s\n", simple_value[value>>ECMA_VALUE_SHIFT]);
     }
   }
 }
-void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
+static void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
 {
   ecma_property_t *property_p = prop_pair_p->header.types + index;
   uint32_t property_value = ECMA_PROPERTY_VALUE_PTR (property_p)->value;
@@ -467,7 +469,7 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
     {
       ecma_object_t *getter_obj_p = ecma_get_named_accessor_property_getter (property_p);
       ecma_object_t *setter_obj_p = ecma_get_named_accessor_property_setter (property_p);
-      printf("\t\t\tvalue:OBJ getter:[0x%x]\tsetter[0x%x]\n", getter_obj_p, setter_obj_p);
+      printf("\t\t\t<v>:OBJ getter:[0x%x]\tsetter[0x%x]\n", getter_obj_p, setter_obj_p);
       break;
     }
     case ECMA_PROPERTY_TYPE_NAMEDDATA:
@@ -486,7 +488,7 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
           refs = str_p->refs_and_container >> 3;
           uint32_t size = ecma_string_to_char_array(str_p, str_buf, 20);
           const char* type = string_type[ECMA_STRING_GET_CONTAINER (str_p)];
-          printf("\t\t\tvalue:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", str_buf, str_p, type, refs, size);
+          printf("\t\t\t<v>:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", str_buf, str_p, type, refs, size);
           break;
         }
         case ECMA_INTERNAL_PROPERTY_PRIMITIVE_NUMBER_VALUE:
@@ -494,23 +496,23 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
           ecma_number_t *num_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_number_t, property_value);
           ecma_number_t num = *num_p;
           if (num>=0) {
-            printf("\t\t\tvalue:NUM %zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000 ,CONFIG_MEM_POOL_CHUNK_SIZE);
+            printf("\t\t\t<v>:NUM %zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000 ,CONFIG_MEM_POOL_CHUNK_SIZE);
           } else {
             num = -num;
-            printf("\t\t\tvalue:NUM -%zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000, CONFIG_MEM_POOL_CHUNK_SIZE);
+            printf("\t\t\t<v>:NUM -%zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000, CONFIG_MEM_POOL_CHUNK_SIZE);
           }
           break;
         }
         case ECMA_INTERNAL_PROPERTY_BOUND_FUNCTION_BOUND_THIS:
         {
-          printf("\t\t\tvalue:OBJ [0x%x]\n", ecma_get_object_from_value(property_value));
+          printf("\t\t\t<v>:OBJ [0x%x]\n", ecma_get_object_from_value(property_value));
           break;
         }
         case ECMA_INTERNAL_PROPERTY_BOUND_FUNCTION_TARGET_FUNCTION: // an object
         case ECMA_INTERNAL_PROPERTY_SCOPE: // a lexical environment
         case ECMA_INTERNAL_PROPERTY_PARAMETERS_MAP: // an object
         {
-          printf("\t\t\tvalue:OBJ [0x%x]\n", ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t, property_value));
+          printf("\t\t\t<v>:OBJ [0x%x]\n", ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t, property_value));
           break;
         }
         case ECMA_INTERNAL_PROPERTY_NATIVE_CODE: // an external pointer
@@ -518,9 +520,9 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
         case ECMA_INTERNAL_PROPERTY_FREE_CALLBACK: // an external pointer
         {
           #ifndef ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY
-            printf("\t\t\tvalue:EXT_P\tsize:%d\n", CONFIG_MEM_POOL_CHUNK_SIZE);
+            printf("\t\t\t<v>:EXT_P\tsize:%d\n", CONFIG_MEM_POOL_CHUNK_SIZE);
           #else// ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY
-            printf("\t\t\tvalue:EXT_P\n");
+            printf("\t\t\t<v>:EXT_P\n");
           #endif
           break;
 
@@ -531,7 +533,7 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
           ecma_compiled_code_t *bytecode_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_compiled_code_t, property_value);
           if (bytecode_p != NULL)
           {
-             printf("\t\t\tvalue:BC [0x%x]\trefs:%d\tsize:%d\n", bytecode_p, bytecode_p->refs, ((size_t) bytecode_p->size) << MEM_ALIGNMENT_LOG);
+             printf("\t\t\t<v>:BC [0x%x]\trefs:%d\tsize:%d\n", bytecode_p, bytecode_p->refs, ((size_t) bytecode_p->size) << MEM_ALIGNMENT_LOG);
           }
           break;
 
@@ -541,7 +543,7 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
           ecma_collection_header_t *bound_arg_list_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_collection_header_t,
                                                                                         property_value);
           const size_t values_in_chunk = JERRY_SIZE_OF_STRUCT_MEMBER (ecma_collection_chunk_t, data) / sizeof (ecma_value_t);
-          printf("\t\t\tvalue:COLL [0x%x]\tsize:%d\tlength:%d\n",
+          printf("\t\t\t<v>:COLL [0x%x]\tsize:%d\tlength:%d\n",
             bound_arg_list_p,
             ((bound_arg_list_p->unit_number + values_in_chunk - 1)/values_in_chunk + 1)*CONFIG_MEM_POOL_CHUNK_SIZE,
             bound_arg_list_p->unit_number);
@@ -560,7 +562,7 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
         default:
         {
 
-          printf("\t\t\tvalue:%d\n", property_value);
+          printf("\t\t\t<v>:%d\n", property_value);
         }
 
       }
@@ -573,52 +575,29 @@ void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index)
   }
 }
 
-/*************************************
- *
- * Zidong hack done
- *
- **************************************/
 
-/**
- * Mark objects as visited starting from specified object as root
- */
-void
-ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
+
+static void scan_one_object (ecma_object_t *object_p)
 {
-
-  JERRY_ASSERT (object_p != NULL);
-  JERRY_ASSERT (ecma_gc_is_object_visited (object_p));
-
   bool traverse_properties = true;
-
   if (ecma_is_lexical_environment (object_p))
   {
     ecma_object_t *lex_env_p = ecma_get_lex_env_outer_reference (object_p);
-    printf("\ttype=ENV_%d [0x%x]\trefs=%d\n", (object_p->type_flags_refs & ECMA_OBJECT_TYPE_MASK), object_p,  (object_p->type_flags_refs)>>6);
+    printf("\tENV_%s [0x%x]\trefs=%d\n", env_type[(object_p->type_flags_refs & ECMA_OBJECT_TYPE_MASK)], object_p,  (object_p->type_flags_refs)>>6);
     printf("\t\touter [0x%x]\n", lex_env_p);
-    if (lex_env_p != NULL)
-    {
-      ecma_gc_set_object_visited (lex_env_p, true);
-    }
 
     if (ecma_get_lex_env_type (object_p) != ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE)
     {
       ecma_object_t *binding_object_p = ecma_get_lex_env_binding_object (object_p);
       printf("\t\tbind [0x%x]\n", binding_object_p);
-      ecma_gc_set_object_visited (binding_object_p, true);
-
       traverse_properties = false;
     }
   }
   else
   {
     ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
-    printf("\ttype=OBJ_%d [0x%x]\trefs=%d\n", (object_p->type_flags_refs & ECMA_OBJECT_TYPE_MASK), object_p, (object_p->type_flags_refs)>>6);
+    printf("\tOBJ_%s [0x%x]\trefs=%d\n", object_type[(object_p->type_flags_refs & ECMA_OBJECT_TYPE_MASK)], object_p, (object_p->type_flags_refs)>>6);
     printf("\t\tprototype [0x%x]\n", proto_p);
-    if (proto_p != NULL)
-    {
-      ecma_gc_set_object_visited (proto_p, true);
-    }
   }
 
   if (traverse_properties)
@@ -643,12 +622,99 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
       if (prop_iter_p->types[0].type_and_flags != ECMA_PROPERTY_TYPE_DELETED)
       {
         show_property_info((ecma_property_pair_t *) prop_iter_p, 0);
-        ecma_gc_mark_property (prop_iter_p->types + 0);
       }
 
       if (prop_iter_p->types[1].type_and_flags != ECMA_PROPERTY_TYPE_DELETED)
       {
         show_property_info((ecma_property_pair_t *) prop_iter_p, 1);
+      }
+
+      prop_iter_p = ECMA_GET_POINTER (ecma_property_header_t,
+                                      prop_iter_p->next_property_cp);
+    }
+  }
+}
+
+void scan_all_objects (void)
+{
+  printf("=== SCAN START ===\n");
+  for (ecma_object_t *obj_iter_p = ecma_gc_objects_lists[ECMA_GC_COLOR_WHITE_GRAY];
+     obj_iter_p != NULL;
+     obj_iter_p = ecma_gc_get_object_next (obj_iter_p))
+  {
+    scan_one_object(obj_iter_p);
+  }
+  printf("=== SCAN DONE ===\n");
+}
+
+/*************************************
+ *
+ * Zidong hack done
+ *
+ **************************************/
+
+/**
+ * Mark objects as visited starting from specified object as root
+ */
+void
+ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
+{
+
+  JERRY_ASSERT (object_p != NULL);
+  JERRY_ASSERT (ecma_gc_is_object_visited (object_p));
+
+  bool traverse_properties = true;
+
+  if (ecma_is_lexical_environment (object_p))
+  {
+    ecma_object_t *lex_env_p = ecma_get_lex_env_outer_reference (object_p);
+    if (lex_env_p != NULL)
+    {
+      ecma_gc_set_object_visited (lex_env_p, true);
+    }
+
+    if (ecma_get_lex_env_type (object_p) != ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE)
+    {
+      ecma_object_t *binding_object_p = ecma_get_lex_env_binding_object (object_p);
+      ecma_gc_set_object_visited (binding_object_p, true);
+
+      traverse_properties = false;
+    }
+  }
+  else
+  {
+    ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
+
+    if (proto_p != NULL)
+    {
+      ecma_gc_set_object_visited (proto_p, true);
+    }
+  }
+
+  if (traverse_properties)
+  {
+    ecma_property_header_t *prop_iter_p = ecma_get_property_list (object_p);
+
+    if (prop_iter_p != NULL
+        && ECMA_PROPERTY_GET_TYPE (prop_iter_p->types + 0) == ECMA_PROPERTY_TYPE_HASHMAP)
+    {
+
+      prop_iter_p = ECMA_GET_POINTER (ecma_property_header_t,
+                                      prop_iter_p->next_property_cp);
+    }
+
+    while (prop_iter_p != NULL)
+    {
+
+      JERRY_ASSERT (ECMA_PROPERTY_IS_PROPERTY_PAIR (prop_iter_p));
+
+      if (prop_iter_p->types[0].type_and_flags != ECMA_PROPERTY_TYPE_DELETED)
+      {
+        ecma_gc_mark_property (prop_iter_p->types + 0);
+      }
+
+      if (prop_iter_p->types[1].type_and_flags != ECMA_PROPERTY_TYPE_DELETED)
+      {
         ecma_gc_mark_property (prop_iter_p->types + 1);
       }
 
@@ -749,9 +815,7 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
 void
 ecma_gc_run (void)
 {
-  printf("GC START\n");
-  printf("new object: %d, current object: %d\n", ecma_gc_new_objects_since_last_gc, ecma_gc_objects_number);
-  //mem_stats_print();
+  scan_all_objects();
   ecma_gc_new_objects_since_last_gc = 0;
 
   JERRY_ASSERT (ecma_gc_objects_lists[ECMA_GC_COLOR_BLACK] == NULL);
@@ -773,7 +837,6 @@ ecma_gc_run (void)
 
   do
   {
-    printf("(iteration)\n");
     marked_anything_during_current_iteration = false;
 
     for (ecma_object_t *obj_iter_p = ecma_gc_objects_lists[ECMA_GC_COLOR_WHITE_GRAY], *obj_prev_p = NULL, *obj_next_p;
@@ -832,11 +895,6 @@ ecma_gc_run (void)
   /* Free RegExp bytecodes stored in cache */
   re_cache_gc_run ();
 #endif /* !CONFIG_ECMA_COMPACT_PROFILE_DISABLE_REGEXP_BUILTIN */
-  printf("GC DONE\n");
-  mem_pools_collect_empty ();
-  printf("current object: %d\n", ecma_gc_objects_number);
-  //mem_stats_print();
-  printf("=========\n\n\n");
 } /* ecma_gc_run */
 
 /**
