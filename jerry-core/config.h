@@ -125,7 +125,7 @@
 /**
  * Disable ECMA lookup cache
  */
-// #define CONFIG_ECMA_LCACHE_DISABLE
+ #define CONFIG_ECMA_LCACHE_DISABLE
 
 /**
  * Disable ECMA property hashmap

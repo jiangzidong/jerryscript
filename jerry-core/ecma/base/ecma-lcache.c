@@ -288,6 +288,7 @@ ecma_lcache_invalidate (ecma_object_t *object_p, /**< object */
 {
   JERRY_ASSERT (object_p != NULL);
   JERRY_ASSERT (prop_name_p != NULL);
+  (void) prop_p;
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
   if (prop_p != NULL)
