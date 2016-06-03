@@ -52,6 +52,16 @@ const char* simple_value[]={"empty", "undefined", "null", "false", "true", "arra
 const char* object_type[]={"gene", "func", "bultin-func", "arr", "str", "ext-func", "bound-func", "argu"};
 const char* env_type[]={"","","","","","decl","obj","this+obj"};
 
+typedef struct {
+  uint32_t obj_num;
+  uint32_t obj_size;
+  uint32_t str_num;
+  uint32_t str_size;
+  uint32_t num_num;
+  uint32_t num_size;
+} object_scan_stat_t;
+
+object_scan_stat_t scan_stat;
 /* TODO: Extract GC to a separate component */
 
 /** \addtogroup ecma ECMA
@@ -414,6 +424,8 @@ static void show_property_name(ecma_string_t *name_p, uint32_t depth, ecma_prope
     uint32_t size = ecma_string_to_char_array(name_p, prop_name, 20);
     const char* type = string_type[ECMA_STRING_GET_CONTAINER (name_p)];
     printf("<k>:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", prop_name, name_p, type, refs, size);
+    scan_stat.str_num++;
+    scan_stat.str_size += size;
   }
 }
 
@@ -436,6 +448,8 @@ static void show_value_info(ecma_value_t value, uint32_t depth) {
       uint32_t size = ecma_string_to_char_array(str_p, str_buf, 20);
       const char* type = string_type[ECMA_STRING_GET_CONTAINER (str_p)];
       printf("<v>:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", str_buf, str_p, type, refs, size);
+      scan_stat.str_num++;
+      scan_stat.str_size += size;
       break;
     }
     case ECMA_TYPE_NUMBER:
@@ -448,6 +462,8 @@ static void show_value_info(ecma_value_t value, uint32_t depth) {
         num = -num;
         printf("<v>:NUM -%zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000, CONFIG_MEM_POOL_CHUNK_SIZE);
       }
+      scan_stat.num_num++;
+      scan_stat.num_size += CONFIG_MEM_POOL_CHUNK_SIZE;
       break;
     }
     default:
@@ -489,6 +505,8 @@ static void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index
           uint32_t size = ecma_string_to_char_array(str_p, str_buf, 20);
           const char* type = string_type[ECMA_STRING_GET_CONTAINER (str_p)];
           printf("\t\t\t<v>:STR %s [0x%x]\ttype:%s\trefs:%d\tsize:%d\n", str_buf, str_p, type, refs, size);
+          scan_stat.str_num++;
+          scan_stat.str_size += size;
           break;
         }
         case ECMA_INTERNAL_PROPERTY_PRIMITIVE_NUMBER_VALUE:
@@ -501,6 +519,8 @@ static void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index
             num = -num;
             printf("\t\t\t<v>:NUM -%zu.%04zu\tsize:%d\n", (uint32_t)num, (uint32_t)((num - (uint32_t)num)*10000)%10000, CONFIG_MEM_POOL_CHUNK_SIZE);
           }
+          scan_stat.num_num++;
+          scan_stat.num_size += CONFIG_MEM_POOL_CHUNK_SIZE;
           break;
         }
         case ECMA_INTERNAL_PROPERTY_BOUND_FUNCTION_BOUND_THIS:
@@ -521,6 +541,7 @@ static void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index
         {
           #ifndef ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY
             printf("\t\t\t<v>:EXT_P\tsize:%d\n", CONFIG_MEM_POOL_CHUNK_SIZE);
+            scan_stat.obj_size += CONFIG_MEM_POOL_CHUNK_SIZE;
           #else// ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY
             printf("\t\t\t<v>:EXT_P\n");
           #endif
@@ -543,13 +564,14 @@ static void show_property_info(ecma_property_pair_t *prop_pair_p, uint32_t index
           ecma_collection_header_t *bound_arg_list_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_collection_header_t,
                                                                                         property_value);
           const size_t values_in_chunk = JERRY_SIZE_OF_STRUCT_MEMBER (ecma_collection_chunk_t, data) / sizeof (ecma_value_t);
+          uint32_t coll_size = (uint32_t)((bound_arg_list_p->unit_number + values_in_chunk - 1)/values_in_chunk + 1)*CONFIG_MEM_POOL_CHUNK_SIZE;
           printf("\t\t\t<v>:COLL [0x%x]\tsize:%d\tlength:%d\n",
             bound_arg_list_p,
-            ((bound_arg_list_p->unit_number + values_in_chunk - 1)/values_in_chunk + 1)*CONFIG_MEM_POOL_CHUNK_SIZE,
+            coll_size,
             bound_arg_list_p->unit_number);
           ecma_collection_iterator_t bound_args_iterator;
           ecma_collection_iterator_init (&bound_args_iterator, bound_arg_list_p);
-
+          scan_stat.obj_size += coll_size;
           for (ecma_length_t i = 0; i < bound_arg_list_p->unit_number; i++)
           {
             bool is_moved = ecma_collection_iterator_next (&bound_args_iterator);
@@ -585,7 +607,8 @@ static void scan_one_object (ecma_object_t *object_p)
     ecma_object_t *lex_env_p = ecma_get_lex_env_outer_reference (object_p);
     printf("\tENV_%s [0x%x]\trefs=%d\n", env_type[(object_p->type_flags_refs & ECMA_OBJECT_TYPE_MASK)], object_p,  (object_p->type_flags_refs)>>6);
     printf("\t\touter [0x%x]\n", lex_env_p);
-
+    scan_stat.obj_num++;
+    scan_stat.obj_size += CONFIG_MEM_POOL_CHUNK_SIZE;
     if (ecma_get_lex_env_type (object_p) != ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE)
     {
       ecma_object_t *binding_object_p = ecma_get_lex_env_binding_object (object_p);
@@ -598,6 +621,8 @@ static void scan_one_object (ecma_object_t *object_p)
     ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
     printf("\tOBJ_%s [0x%x]\trefs=%d\n", object_type[(object_p->type_flags_refs & ECMA_OBJECT_TYPE_MASK)], object_p, (object_p->type_flags_refs)>>6);
     printf("\t\tprototype [0x%x]\n", proto_p);
+    scan_stat.obj_num++;
+    scan_stat.obj_size += CONFIG_MEM_POOL_CHUNK_SIZE;
   }
 
   if (traverse_properties)
@@ -609,7 +634,7 @@ static void scan_one_object (ecma_object_t *object_p)
     {
       uint32_t hashmap_total_size = (uint32_t)ECMA_PROPERTY_HASHMAP_GET_TOTAL_SIZE(((ecma_property_hashmap_t *)prop_iter_p)->max_property_count);
       printf("\t\thashmap\theap_size=%d\n", (hashmap_total_size + MEM_ALIGNMENT - 1) / MEM_ALIGNMENT * MEM_ALIGNMENT);
-
+      scan_stat.obj_size += hashmap_total_size;
       prop_iter_p = ECMA_GET_POINTER (ecma_property_header_t,
                                       prop_iter_p->next_property_cp);
     }
@@ -619,6 +644,7 @@ static void scan_one_object (ecma_object_t *object_p)
 
       JERRY_ASSERT (ECMA_PROPERTY_IS_PROPERTY_PAIR (prop_iter_p));
       printf("\t\tprop_pair\theap_size=%d\n", sizeof(ecma_property_pair_t));
+      scan_stat.obj_size += (uint32_t)sizeof(ecma_property_pair_t);
       if (prop_iter_p->types[0].type_and_flags != ECMA_PROPERTY_TYPE_DELETED)
       {
         show_property_info((ecma_property_pair_t *) prop_iter_p, 0);
@@ -635,15 +661,35 @@ static void scan_one_object (ecma_object_t *object_p)
   }
 }
 
+static void scan_stat_init()
+{
+  scan_stat.obj_num=0;
+  scan_stat.obj_size=0;
+  scan_stat.str_size=0;
+  scan_stat.str_num=0;
+  scan_stat.num_num=0;
+  scan_stat.num_size=0;
+}
+
+static void scan_stat_print()
+{
+  printf("obj num:%d, size:%d\n", scan_stat.obj_num, scan_stat.obj_size);
+  printf("str num:%d, size:%d\n", scan_stat.str_num, scan_stat.str_size);
+  printf("num num:%d, size:%d\n", scan_stat.num_num, scan_stat.num_size);
+}
+
 void scan_all_objects (void)
 {
   printf("=== SCAN START ===\n");
+  scan_stat_init();
   for (ecma_object_t *obj_iter_p = ecma_gc_objects_lists[ECMA_GC_COLOR_WHITE_GRAY];
      obj_iter_p != NULL;
      obj_iter_p = ecma_gc_get_object_next (obj_iter_p))
   {
     scan_one_object(obj_iter_p);
   }
+  printf("=== SCAN SUMMARY ===\n");
+  scan_stat_print();
   printf("=== SCAN DONE ===\n");
 }
 
