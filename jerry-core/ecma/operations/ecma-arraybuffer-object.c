@@ -50,8 +50,11 @@ ecma_op_create_arraybuffer_object (const ecma_value_t *arguments_list_p, /**< li
 
   if (arguments_list_len > 0)
   {
-    ecma_number_t num = ecma_get_number_from_value (ecma_op_to_number (arguments_list_p[0]));
+    ecma_value_t num_value = ecma_op_to_number (arguments_list_p[0]);
+    ecma_number_t num = ecma_get_number_from_value (num_value);
     length = ecma_number_to_uint32 (num);
+    ecma_free_value (num_value);
+
     if (num != ((ecma_number_t) length))
     {
       return ecma_raise_range_error (ECMA_ERR_MSG ("Invalid ArrayBuffer length."));
