@@ -26,6 +26,28 @@
  */
 
 /**
+ * Description of the PromiseReactionJob
+ */
+typedef struct
+{
+  ecma_value_t reaction; /**< the PromiseReaction */
+  ecma_value_t argument; /**< argument for the reaction */
+} ecma_job_promise_reaction_t;
+
+/**
+ * Description of the PromiseResolveThenableJob
+ */
+typedef struct
+{
+  ecma_value_t promise; /**< promise to be resolved */
+  ecma_value_t thenable; /**< thenbale object */
+  ecma_value_t then; /** 'then' function */
+} ecma_job_promise_resolve_thenable_t;
+
+void ecma_enqueue_promise_reaction_job (ecma_value_t reaction, ecma_value_t argument);
+void ecma_enqueue_promise_resolve_thenable_job (ecma_value_t promise, ecma_value_t thenable, ecma_value_t then);
+
+/**
  * @}
  * @}
  */
