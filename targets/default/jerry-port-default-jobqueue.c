@@ -65,16 +65,12 @@ void jerry_port_jobqueue_enqueue (jerry_job_handler_t handler, /**< the handler 
 
   if (queue.head_p == NULL)
   {
-    JERRY_ASSERT (queue.tail_p == NULL);
-
     queue.head_p = item_p;
     item_p->next_p = NULL;
     queue.tail_p = item_p;
 
     return;
   }
-
-  JERRY_ASSERT (queue.tail_p != NULL);
 
   queue.tail_p->next_p = item_p;
   queue.tail_p = item_p;
@@ -90,12 +86,8 @@ jerry_port_jobqueue_dequeue (void)
 {
   if (queue.head_p == NULL)
   {
-    JERRY_ASSERT (queue.tail_p == NULL);
-
     return NULL;
   }
-
-  JERRY_ASSERT (queue.tail_p != NULL);
 
   jerry_port_queueitem_t *item_p = queue.head_p;
   queue.head_p = queue.head_p->next_p;

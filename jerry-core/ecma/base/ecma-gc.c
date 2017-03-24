@@ -34,6 +34,9 @@
 #ifndef CONFIG_DISABLE_ES2015_ARRAYBUFFER_BUILTIN
 #include "ecma-typedarray-object.h"
 #endif
+#ifndef CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
+#include "ecma-promise-object.h"
+#endif
 
 #define JERRY_INTERNAL
 #include "jerry-internal.h"
@@ -496,6 +499,16 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
           return;
         }
 #endif /* !CONFIG_DISABLE_ES2015_ARRAYBUFFER_BUILTIN */
+#ifndef CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
+        case LIT_MAGIC_STRING_PROMISE_UL:
+        {
+          ecma_free_value (ext_object_p->u.class_prop.u.value);
+          ecma_free_values_collection (((ecma_promise_object_t *) object_p)->fulfill_reactions, true);
+          ecma_free_values_collection (((ecma_promise_object_t *) object_p)->reject_reactions, true);
+          ecma_dealloc_extended_object ((ecma_extended_object_t *) object_p, sizeof (ecma_promise_object_t));
+          return;
+        }
+#endif /* !CONFIG_DISABLE_ES2015_PROMISE_BUILTIN */
         default:
         {
           JERRY_UNREACHABLE ();

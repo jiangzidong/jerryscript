@@ -193,6 +193,15 @@ OBJECT_VALUE (LIT_MAGIC_STRING_UINT8_CLAMPED_ARRAY_UL,
               ECMA_PROPERTY_CONFIGURABLE_WRITABLE)
 
 #endif /* !CONFIG_DISABLE_ES2015_ARRAYBUFFER_BUILTIN */
+
+#ifndef CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
+
+OBJECT_VALUE (LIT_MAGIC_STRING_PROMISE_UL,
+              ECMA_BUILTIN_ID_PROMISE,
+              ECMA_PROPERTY_CONFIGURABLE_WRITABLE)
+
+#endif /* !CONFIG_DISABLE_ES2015_PROMISE_BUILTIN */
+
 /* Routine properties:
  *  (property name, C routine name, arguments number or NON_FIXED, value of the routine's length property) */
 
