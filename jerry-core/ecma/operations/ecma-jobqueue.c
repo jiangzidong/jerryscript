@@ -31,6 +31,25 @@
  */
 
 /**
+ * Description of the PromiseReactionJob
+ */
+typedef struct
+{
+  ecma_value_t reaction; /**< the PromiseReaction */
+  ecma_value_t argument; /**< argument for the reaction */
+} ecma_job_promise_reaction_t;
+
+/**
+ * Description of the PromiseResolveThenableJob
+ */
+typedef struct
+{
+  ecma_value_t promise; /**< promise to be resolved */
+  ecma_value_t thenable; /**< thenbale object */
+  ecma_value_t then; /** 'then' function */
+} ecma_job_promise_resolve_thenable_t;
+
+/**
  * Create a PromiseReactionJob.
  *
  * @return pointer to the PromiseReactionJob
@@ -39,9 +58,10 @@ static ecma_job_promise_reaction_t *
 ecma_create_promise_reaction_job (ecma_value_t reaction, /**< PromiseReaction */
                                   ecma_value_t argument) /**< argument for the reaction */
 {
+  JERRY_ASSERT (ecma_is_value_object (reaction));
+
   ecma_job_promise_reaction_t *job_p;
   job_p = (ecma_job_promise_reaction_t *) jmem_heap_alloc_block (sizeof (ecma_job_promise_reaction_t));
-
   job_p->reaction = ecma_copy_value (reaction);
   job_p->argument = ecma_copy_value (argument);
 
@@ -72,6 +92,10 @@ ecma_create_promise_resolve_thenable_job (ecma_value_t promise, /**< promise to 
                                           ecma_value_t thenable, /**< thenable object */
                                           ecma_value_t then) /**< 'then' function */
 {
+  JERRY_ASSERT (ecma_is_promise (ecma_get_object_from_value (promise)));
+  JERRY_ASSERT (ecma_is_value_object (thenable));
+  JERRY_ASSERT (ecma_op_is_callable (then));
+
   ecma_job_promise_resolve_thenable_t *job_p;
   job_p = (ecma_job_promise_resolve_thenable_t *) jmem_heap_alloc_block (sizeof (ecma_job_promise_resolve_thenable_t));
 
@@ -115,9 +139,9 @@ ecma_process_promise_reaction_job (void *obj_p) /**< the job to be operated */
   ecma_string_t *str_0 = ecma_new_ecma_string_from_uint32 (0);
   ecma_string_t *str_1 = ecma_new_ecma_string_from_uint32 (1);
   ecma_string_t *str_2 = ecma_new_ecma_string_from_uint32 (2);
-  /* 2. string '0' indicates the [[Capability]] of reaction */
+  /* 2. string '0' indicates the [[Capability]] of reaction. */
   ecma_value_t capability = ecma_op_object_get (reaction_p, str_0);
-  /* 3. string '1' indicates the [[Handler]] of reaction */
+  /* 3. string '1' indicates the [[Handler]] of reaction. */
   ecma_value_t handler = ecma_op_object_get (reaction_p, str_1);
 
   JERRY_ASSERT (ecma_is_value_boolean (handler) || ecma_op_is_callable (handler));
@@ -139,11 +163,11 @@ ecma_process_promise_reaction_job (void *obj_p) /**< the job to be operated */
   }
 
   ecma_value_t status;
-  /* 7. */
+
   if (ecma_is_value_false (handler) || ECMA_IS_VALUE_ERROR (handler_result))
   {
-    /* str '2' indicates [[Reject]] of Capability */
-    handler_result = handler_result & ~ECMA_VALUE_ERROR_FLAG;
+    /* 7. String '2' indicates [[Reject]] of Capability. */
+    handler_result = ecma_get_value_from_error_value (handler_result);
     ecma_value_t reject = ecma_op_object_get (ecma_get_object_from_value (capability), str_2);
 
     JERRY_ASSERT (ecma_op_is_callable (reject));
@@ -154,10 +178,9 @@ ecma_process_promise_reaction_job (void *obj_p) /**< the job to be operated */
                                     1);
     ecma_free_value (reject);
   }
-  /* 8 */
   else
   {
-    /* str '1' indicates [[Resolve]] of Capability */
+    /* 8. String '1' indicates [[Resolve]] of Capability. */
     ecma_value_t resolve = ecma_op_object_get (ecma_get_object_from_value (capability), str_1);
 
     JERRY_ASSERT (ecma_op_is_callable (resolve));

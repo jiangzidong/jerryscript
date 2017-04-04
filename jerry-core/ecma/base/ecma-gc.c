@@ -180,7 +180,7 @@ ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair
     case ECMA_PROPERTY_TYPE_NAMEDDATA:
     {
       if (ECMA_PROPERTY_GET_NAME_TYPE (property) == ECMA_STRING_CONTAINER_MAGIC_STRING
-          && property_pair_p->names_cp[index] >= LIT_NON_INTERNAL_MAGIC_STRING__COUNT)
+          && property_pair_p->names_cp[index] >= LIT_NEED_MARK_MAGIC_STRING__COUNT)
       {
         break;
       }
@@ -270,14 +270,15 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
 
         if (ext_object_p->u.class_prop.class_id == LIT_MAGIC_STRING_PROMISE_UL)
         {
-          /* mark promise result */
+          /* Mark promise result. */
           ecma_value_t result = ext_object_p->u.class_prop.u.value;
 
           if (ecma_is_value_object (result))
           {
             ecma_gc_set_object_visited (ecma_get_object_from_value (result), true);
           }
-          /* mark all reactions */
+
+          /* Mark all reactions. */
           ecma_collection_iterator_t iter;
           ecma_collection_iterator_init (&iter, ((ecma_promise_object_t *) ext_object_p)->fulfill_reactions);
 

@@ -64,7 +64,7 @@ void ecma_promise_set_result (ecma_object_t *obj_p, ecma_value_t result);
 uint8_t ecma_promise_get_state (ecma_object_t *obj_p);
 void ecma_promise_set_state (ecma_object_t *obj_p, uint8_t state);
 ecma_value_t
-ecma_op_create_promise_object (const ecma_value_t *arguments_list_p, ecma_length_t arguments_list_len);
+ecma_op_create_promise_object (ecma_value_t executor, bool is_func);
 ecma_promise_resolving_functions_t *
 ecma_promise_create_resolving_functions (ecma_object_t *obj_p);
 void ecma_promise_free_resolving_functions (ecma_promise_resolving_functions_t *funcs);

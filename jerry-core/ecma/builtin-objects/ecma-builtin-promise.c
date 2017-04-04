@@ -14,6 +14,7 @@
  */
 
 #include "ecma-exceptions.h"
+#include "ecma-function-object.h"
 #include "ecma-globals.h"
 #include "ecma-promise-object.h"
 
@@ -51,7 +52,7 @@ ecma_builtin_promise_dispatch_call (const ecma_value_t *arguments_list_p, /**< a
 {
   JERRY_ASSERT (arguments_list_len == 0 || arguments_list_p != NULL);
 
-  return ecma_raise_type_error (ECMA_ERR_MSG ("Constructor Promise requires 'new'"));
+  return ecma_raise_type_error (ECMA_ERR_MSG ("Constructor Promise requires 'new'."));
 } /* ecma_builtin_promise_dispatch_call */
 
 /**
@@ -65,7 +66,12 @@ ecma_builtin_promise_dispatch_construct (const ecma_value_t *arguments_list_p, /
 {
   JERRY_ASSERT (arguments_list_len == 0 || arguments_list_p != NULL);
 
-  return ecma_op_create_promise_object (arguments_list_p, arguments_list_len);
+  if (arguments_list_len == 0 || !ecma_op_is_callable (arguments_list_p[0]))
+  {
+    return ecma_raise_type_error (ECMA_ERR_MSG ("First parameter must be callable."));
+  }
+
+  return ecma_op_create_promise_object (arguments_list_p[0], true);
 } /* ecma_builtin_promise_dispatch_construct */
 
 /**

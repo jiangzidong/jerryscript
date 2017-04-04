@@ -54,7 +54,7 @@ ecma_builtin_promise_prototype_then (ecma_value_t this_arg, /**< this argument *
 
   if (!ecma_is_promise (obj))
   {
-    return ecma_raise_type_error (ECMA_ERR_MSG ("'this' is not a Promise"));
+    return ecma_raise_type_error (ECMA_ERR_MSG ("'this' is not a Promise."));
   }
 
   ecma_value_t result_capability = ecma_promise_new_capability ();
