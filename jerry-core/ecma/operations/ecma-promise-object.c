@@ -629,11 +629,11 @@ ecma_promise_new_capability (void)
  * @return ecma value of the new promise object
  *         Returned value must be freed with ecma_free_value
  */
-ecma_value_t
-ecma_promise_then (ecma_value_t promise, /**< the promise which call 'then' */
-                   ecma_value_t on_fulfilled, /**< on_fulfilled function */
-                   ecma_value_t on_rejected, /**< on_rejected function */
-                   ecma_value_t result_capability) /**< promise capability */
+static ecma_value_t
+ecma_promise_do_then (ecma_value_t promise, /**< the promise which call 'then' */
+                      ecma_value_t on_fulfilled, /**< on_fulfilled function */
+                      ecma_value_t on_rejected, /**< on_rejected function */
+                      ecma_value_t result_capability) /**< promise capability */
 {
   ecma_string_t *str_0 = ecma_new_ecma_string_from_uint32 (0);
   ecma_string_t *str_1 = ecma_new_ecma_string_from_uint32 (1);
@@ -707,6 +707,38 @@ ecma_promise_then (ecma_value_t promise, /**< the promise which call 'then' */
   ecma_deref_object (reject_reaction_p);
   ecma_deref_ecma_string (str_0);
   ecma_deref_ecma_string (str_1);
+
+  return ret;
+} /* ecma_promise_do_then */
+
+/**
+ * The common function for ecma_builtin_promise_prototype_then
+ * and ecma_builtin_promise_prototype_catch.
+ *
+ * @return ecma value of a new promise object.
+ *         Returned value must be freed with ecma_free_value.
+ */
+ecma_value_t
+ecma_promise_then (ecma_value_t promise, /**< the promise which call 'then' */
+                   ecma_value_t on_fulfilled, /**< on_fulfilled function */
+                   ecma_value_t on_rejected) /**< on_rejected function */
+{
+  ecma_object_t *obj = ecma_get_object_from_value (promise);
+
+  if (!ecma_is_promise (obj))
+  {
+    return ecma_raise_type_error (ECMA_ERR_MSG ("'this' is not a Promise."));
+  }
+
+  ecma_value_t result_capability = ecma_promise_new_capability ();
+
+  if (ECMA_IS_VALUE_ERROR (result_capability))
+  {
+    return result_capability;
+  }
+
+  ecma_value_t ret = ecma_promise_do_then (promise, on_fulfilled, on_rejected, result_capability);
+  ecma_free_value (result_capability);
 
   return ret;
 } /* ecma_promise_then */

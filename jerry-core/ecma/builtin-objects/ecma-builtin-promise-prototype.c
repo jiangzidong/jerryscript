@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-#include "ecma-exceptions.h"
 #include "ecma-globals.h"
-#include "ecma-helpers.h"
 #include "ecma-promise-object.h"
 
 #ifndef CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
@@ -50,24 +48,9 @@ ecma_builtin_promise_prototype_then (ecma_value_t this_arg, /**< this argument *
                                      ecma_value_t on_fulfilled, /**< on_fulfilled function */
                                      ecma_value_t on_rejected) /**< on_rejected function */
 {
-  ecma_object_t *obj = ecma_get_object_from_value (this_arg);
-
-  if (!ecma_is_promise (obj))
-  {
-    return ecma_raise_type_error (ECMA_ERR_MSG ("'this' is not a Promise."));
-  }
-
-  ecma_value_t result_capability = ecma_promise_new_capability ();
-
-  if (ECMA_IS_VALUE_ERROR (result_capability))
-  {
-    return result_capability;
-  }
-
-  ecma_value_t ret = ecma_promise_then (this_arg, on_fulfilled, on_rejected, result_capability);
-  ecma_free_value (result_capability);
-
-  return ret;
+  return ecma_promise_then (this_arg,
+                            on_fulfilled,
+                            on_rejected);
 } /* ecma_builtin_promise_prototype_then */
 
 /**
@@ -82,9 +65,9 @@ static ecma_value_t
 ecma_builtin_promise_prototype_catch (ecma_value_t this_arg, /**< this argument */
                                       ecma_value_t on_rejected) /**< on_rejected function */
 {
-  return ecma_builtin_promise_prototype_then (this_arg,
-                                              ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED),
-                                              on_rejected);
+  return ecma_promise_then (this_arg,
+                            ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED),
+                            on_rejected);
 } /* ecma_builtin_promise_prototype_catch */
 
 /**

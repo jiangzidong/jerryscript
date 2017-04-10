@@ -72,8 +72,8 @@ ecma_value_t ecma_promise_new_capability (void);
 ecma_value_t
 ecma_promise_then (ecma_value_t promise,
                    ecma_value_t on_fulfilled,
-                   ecma_value_t on_rejected,
-                   ecma_value_t result_capability);
+                   ecma_value_t on_rejected);
+
 /**
  * @}
  * @}
