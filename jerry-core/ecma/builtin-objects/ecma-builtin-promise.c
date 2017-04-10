@@ -38,6 +38,117 @@
  */
 
 /**
+ * The common function for 'reject' and 'resolve'.
+ *
+ * @return ecma value
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_promise_reject_or_resolve (ecma_value_t this_arg, /**< "this" argument */
+                                        ecma_value_t argument, /**< argument for reject or resolve */
+                                        bool is_resolve) /** whether it is for resolve routine */
+{
+  if (!ecma_is_value_object (this_arg))
+  {
+    return ecma_raise_type_error (ECMA_ERR_MSG ("'this' is not an object."));
+  }
+
+  uint8_t builtin_id = ecma_get_object_builtin_id (ecma_get_object_from_value (this_arg));
+
+  if (builtin_id != ECMA_BUILTIN_ID_PROMISE)
+  {
+    return ecma_raise_type_error (ECMA_ERR_MSG ("'this' is not the Promise constructor."));
+  }
+
+  if (is_resolve)
+  {
+    if (ecma_is_value_object (argument)
+        && ecma_is_promise (ecma_get_object_from_value (argument)))
+    {
+      return ecma_copy_value (argument);
+    }
+  }
+
+  ecma_value_t capability = ecma_promise_new_capability ();
+
+  if (ECMA_IS_VALUE_ERROR (capability))
+  {
+    return capability;
+  }
+
+  ecma_string_t *str;
+
+  if (is_resolve)
+  {
+    /* String '1' indicates [[Resolve]] of Capability. */
+    str = ecma_new_ecma_string_from_uint32 (1);
+  }
+  else
+  {
+    /* String '2' indicates [[Reject]] of Capability. */
+    str = ecma_new_ecma_string_from_uint32 (2);
+  }
+
+  ecma_value_t func = ecma_op_object_get (ecma_get_object_from_value (capability), str);
+  ecma_deref_ecma_string (str);
+
+  ecma_value_t call_ret = ecma_op_function_call (ecma_get_object_from_value (func),
+                                                 ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED),
+                                                 &argument,
+                                                 1);
+
+  ecma_free_value (func);
+
+  if (ECMA_IS_VALUE_ERROR (call_ret))
+  {
+    return call_ret;
+  }
+
+  ecma_free_value (call_ret);
+
+  /* String '0' here indicates the [[Promise]] of Capability. */
+  ecma_string_t *str_0 = ecma_new_ecma_string_from_uint32 (0);
+  ecma_value_t promise_new = ecma_op_object_get (ecma_get_object_from_value (capability), str_0);
+  ecma_deref_ecma_string (str_0);
+  ecma_free_value (capability);
+
+
+  return promise_new;
+} /* ecma_builtin_promise_reject_or_resolve */
+
+/**
+ * The Promise.reject routine.
+ *
+ * See also:
+ *         ES2015 25.4.4.4
+ *
+ * @return ecma value of the new promise.
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_promise_reject (ecma_value_t this_arg, /**< 'this' argument */
+                             ecma_value_t reason) /**< the reason for reject */
+{
+  return ecma_builtin_promise_reject_or_resolve (this_arg, reason, false);
+} /* ecma_builtin_promise_reject */
+
+/**
+ * The Promise.resolve routine.
+ *
+ * See also:
+ *         ES2015 25.4.4.5
+ *
+ * @return ecma value of the new promise.
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_promise_resolve (ecma_value_t this_arg, /**< 'this' argument */
+                              ecma_value_t argument) /**< the argument for resolve */
+{
+  return ecma_builtin_promise_reject_or_resolve (this_arg, argument, true);
+} /* ecma_builtin_promise_resolve */
+
+/**
  * Handle calling [[Call]] of built-in Promise object.
  *
  * ES2015 25.4.3 Promise is not intended to be called

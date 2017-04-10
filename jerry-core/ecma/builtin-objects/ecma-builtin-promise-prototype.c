@@ -42,8 +42,8 @@
  *
  * See also: 25.4.5.3
  *
- * @return ecma value of a new promise object
- *         Returned value must be freed with ecma_free_value
+ * @return ecma value of a new promise object.
+ *         Returned value must be freed with ecma_free_value.
  */
 static ecma_value_t
 ecma_builtin_promise_prototype_then (ecma_value_t this_arg, /**< this argument */
@@ -69,6 +69,23 @@ ecma_builtin_promise_prototype_then (ecma_value_t this_arg, /**< this argument *
 
   return ret;
 } /* ecma_builtin_promise_prototype_then */
+
+/**
+ * Promise routine: catch.
+ *
+ * See also: 25.4.5.1
+ *
+ * @return ecma value of a new promise object.
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_promise_prototype_catch (ecma_value_t this_arg, /**< this argument */
+                                      ecma_value_t on_rejected) /**< on_rejected function */
+{
+  return ecma_builtin_promise_prototype_then (this_arg,
+                                              ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED),
+                                              on_rejected);
+} /* ecma_builtin_promise_prototype_catch */
 
 /**
  * @}
