@@ -166,8 +166,13 @@ ecma_process_promise_reaction_job (void *obj_p) /**< the job to be operated */
 
   if (ecma_is_value_false (handler) || ECMA_IS_VALUE_ERROR (handler_result))
   {
+    if (ECMA_IS_VALUE_ERROR (handler_result))
+    {
+      handler_result = ecma_get_value_from_error_value (handler_result);
+    }
+
     /* 7. String '2' indicates [[Reject]] of Capability. */
-    handler_result = ecma_get_value_from_error_value (handler_result);
+
     ecma_value_t reject = ecma_op_object_get (ecma_get_object_from_value (capability), str_2);
 
     JERRY_ASSERT (ecma_op_is_callable (reject));
