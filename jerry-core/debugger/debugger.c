@@ -46,11 +46,6 @@
   type *name_p = ((type *) recv_buffer_p)
 
 /**
- * Sleep time in milliseconds between each jerry_debugger_receive call
- */
-#define JERRY_DEBUGGER_TIMEOUT 100
-
-/**
  * Free all unreferenced byte code structures which
  * were not acknowledged by the debugger client.
  */
@@ -165,7 +160,7 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
   }
 
   ecma_value_t message = result;
-  uint8_t type = JERRY_DEBUGGER_EVAL_RESULT;
+  uint8_t type = JERRY_DEBUGGER_EVAL_OK;
 
   if (ECMA_IS_VALUE_ERROR (result))
   {
@@ -188,7 +183,8 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
         ecma_free_value (result);
 
         const lit_utf8_byte_t *string_p = lit_get_magic_string_utf8 (id);
-        return jerry_debugger_send_string (JERRY_DEBUGGER_EVAL_ERROR,
+        return jerry_debugger_send_string (JERRY_DEBUGGER_EVAL_RESULT,
+                                           type,
                                            string_p,
                                            strlen ((const char *) string_p));
       }
@@ -206,7 +202,7 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
   ecma_string_t *string_p = ecma_get_string_from_value (message);
 
   ECMA_STRING_TO_UTF8_STRING (string_p, buffer_p, buffer_size);
-  bool success = jerry_debugger_send_string (type, buffer_p, buffer_size);
+  bool success = jerry_debugger_send_string (JERRY_DEBUGGER_EVAL_RESULT, type, buffer_p, buffer_size);
   ECMA_FINALIZE_UTF8_STRING (buffer_p, buffer_size);
 
   ecma_free_value (message);
@@ -218,19 +214,17 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
  * Suspend execution for a given time.
  * Note: If the platform does not have nanosleep or usleep, this function does not sleep at all.
  */
-static void
-jerry_debugger_sleep (unsigned milliseconds) /**< suspending time */
+void
+jerry_debugger_sleep (void)
 {
 #ifdef HAVE_TIME_H
   nanosleep (&(const struct timespec)
   {
-    milliseconds / 1000, (milliseconds % 1000) * 1000000L /* Seconds, nanoseconds */
+    JERRY_DEBUGGER_TIMEOUT / 1000, (JERRY_DEBUGGER_TIMEOUT % 1000) * 1000000L /* Seconds, nanoseconds */
   }
   , NULL);
 #elif defined (HAVE_UNISTD_H)
-  usleep ((useconds_t) milliseconds * 1000);
-#else /* If neither of the libs found */
-  JERRY_UNUSED (milliseconds);
+  usleep ((useconds_t) JERRY_DEBUGGER_TIMEOUT * 1000);
 #endif /* HAVE_TIME_H */
 } /* jerry_debugger_sleep */
 
@@ -255,8 +249,8 @@ inline bool __attr_always_inline___
 jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the received data */
                                 uint32_t message_size, /**< message size */
                                 bool *resume_exec_p, /**< pointer to the resume exec flag */
-                                uint8_t *expected_message_type_p, /**< expected message type */
-                                void **message_data_p) /**< custom message data */
+                                uint8_t *expected_message_type_p, /**< message type */
+                                jerry_debugger_uint8_data_t **message_data_p) /**< custom message data */
 {
   /* Process the received message. */
 
@@ -270,53 +264,65 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
   if (*expected_message_type_p != 0)
   {
-    JERRY_ASSERT (*expected_message_type_p == JERRY_DEBUGGER_EVAL_PART);
+    JERRY_ASSERT (*expected_message_type_p == JERRY_DEBUGGER_EVAL_PART
+                  || *expected_message_type_p == JERRY_DEBUGGER_CLIENT_SOURCE_PART);
 
-    jerry_debugger_eval_data_t *eval_data_p = (jerry_debugger_eval_data_t *) *message_data_p;
+    jerry_debugger_uint8_data_t *uint8_data_p = (jerry_debugger_uint8_data_t *) *message_data_p;
 
-    if (recv_buffer_p[0] != JERRY_DEBUGGER_EVAL_PART)
+    if (recv_buffer_p[0] != *expected_message_type_p)
     {
-      jmem_heap_free_block (eval_data_p, eval_data_p->eval_size + sizeof (jerry_debugger_eval_data_t));
+      jmem_heap_free_block (uint8_data_p, uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));
       jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Unexpected message\n");
       jerry_debugger_close_connection ();
       return false;
     }
 
-    JERRY_DEBUGGER_RECEIVE_BUFFER_AS (jerry_debugger_receive_eval_part_t, eval_part_p);
+    JERRY_DEBUGGER_RECEIVE_BUFFER_AS (jerry_debugger_receive_uint8_data_part_t, uint8_data_part_p);
 
-    if (message_size < sizeof (jerry_debugger_receive_eval_part_t) + 1)
+    if (message_size < sizeof (jerry_debugger_receive_uint8_data_part_t) + 1)
     {
-      jmem_heap_free_block (eval_data_p, eval_data_p->eval_size + sizeof (jerry_debugger_eval_data_t));
+      jmem_heap_free_block (uint8_data_p, uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));
       jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Invalid message size\n");
       jerry_debugger_close_connection ();
       return false;
     }
 
-    uint32_t expected_data = eval_data_p->eval_size - eval_data_p->eval_offset;
+    uint32_t expected_data = uint8_data_p->uint8_size - uint8_data_p->uint8_offset;
 
-    message_size -= (uint32_t) sizeof (jerry_debugger_receive_eval_part_t);
+    message_size -= (uint32_t) sizeof (jerry_debugger_receive_uint8_data_part_t);
 
     if (message_size > expected_data)
     {
-      jmem_heap_free_block (eval_data_p, eval_data_p->eval_size + sizeof (jerry_debugger_eval_data_t));
+      jmem_heap_free_block (uint8_data_p, uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));
       jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Invalid message size\n");
       jerry_debugger_close_connection ();
       return false;
     }
 
-    lit_utf8_byte_t *eval_string_p = (lit_utf8_byte_t *) (eval_data_p + 1);
-    memcpy (eval_string_p + eval_data_p->eval_offset,
-            (lit_utf8_byte_t *) (eval_part_p + 1),
+    lit_utf8_byte_t *string_p = (lit_utf8_byte_t *) (uint8_data_p + 1);
+    memcpy (string_p + uint8_data_p->uint8_offset,
+            (lit_utf8_byte_t *) (uint8_data_part_p + 1),
             message_size);
 
     if (message_size < expected_data)
     {
-      eval_data_p->eval_offset += message_size;
+      uint8_data_p->uint8_offset += message_size;
       return true;
     }
 
-    bool result = jerry_debugger_send_eval (eval_string_p, eval_data_p->eval_size);
-    jmem_heap_free_block (eval_data_p, eval_data_p->eval_size + sizeof (jerry_debugger_eval_data_t));
+    bool result = false;
+    if (*expected_message_type_p == JERRY_DEBUGGER_EVAL_PART)
+    {
+      result = jerry_debugger_send_eval (string_p, uint8_data_p->uint8_size);
+    }
+    else
+    {
+      result = true;
+      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags)
+                                       & ~JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
+      *resume_exec_p = true;
+    }
+
     *expected_message_type_p = 0;
     return result;
   }
@@ -486,21 +492,79 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
         return jerry_debugger_send_eval ((lit_utf8_byte_t *) (eval_first_p + 1), eval_size);
       }
 
-      jerry_debugger_eval_data_t *eval_data_p;
-      size_t eval_data_size = sizeof (jerry_debugger_eval_data_t) + eval_size;
+      jerry_debugger_uint8_data_t *eval_uint8_data_p;
+      size_t eval_data_size = sizeof (jerry_debugger_uint8_data_t) + eval_size;
 
-      eval_data_p = (jerry_debugger_eval_data_t *) jmem_heap_alloc_block (eval_data_size);
+      eval_uint8_data_p = (jerry_debugger_uint8_data_t *) jmem_heap_alloc_block (eval_data_size);
 
-      eval_data_p->eval_size = eval_size;
-      eval_data_p->eval_offset = (uint32_t) (message_size - sizeof (jerry_debugger_receive_eval_first_t));
+      eval_uint8_data_p->uint8_size = eval_size;
+      eval_uint8_data_p->uint8_offset = (uint32_t) (message_size - sizeof (jerry_debugger_receive_eval_first_t));
 
-      lit_utf8_byte_t *eval_string_p = (lit_utf8_byte_t *) (eval_data_p + 1);
+      lit_utf8_byte_t *eval_string_p = (lit_utf8_byte_t *) (eval_uint8_data_p + 1);
       memcpy (eval_string_p,
               (lit_utf8_byte_t *) (eval_first_p + 1),
               message_size - sizeof (jerry_debugger_receive_eval_first_t));
 
-      *message_data_p = eval_data_p;
+      *message_data_p = eval_uint8_data_p;
       *expected_message_type_p = JERRY_DEBUGGER_EVAL_PART;
+      return true;
+    }
+
+    case JERRY_DEBUGGER_CLIENT_SOURCE:
+    {
+      if (message_size <= sizeof (jerry_debugger_receive_client_source_first_t))
+      {
+        jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Invalid message size\n");
+        jerry_debugger_close_connection ();
+        return false;
+      }
+
+      if (!(JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CLIENT_SOURCE_MODE))
+      {
+        jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Not in client source mode\n");
+        jerry_debugger_close_connection ();
+        return false;
+      }
+
+      JERRY_DEBUGGER_RECEIVE_BUFFER_AS (jerry_debugger_receive_client_source_first_t, client_source_first_p);
+
+      uint32_t client_source_size;
+      memcpy (&client_source_size, client_source_first_p->code_size, sizeof (uint32_t));
+
+      if (client_source_size <= JERRY_DEBUGGER_MAX_RECEIVE_SIZE - sizeof (jerry_debugger_receive_client_source_first_t)
+          && client_source_size != message_size - sizeof (jerry_debugger_receive_client_source_first_t))
+      {
+        jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Invalid message size\n");
+        jerry_debugger_close_connection ();
+        return false;
+      }
+
+      jerry_debugger_uint8_data_t *client_source_data_p;
+      size_t client_source_data_size = sizeof (jerry_debugger_uint8_data_t) + client_source_size;
+
+      client_source_data_p = (jerry_debugger_uint8_data_t *) jmem_heap_alloc_block (client_source_data_size);
+
+      client_source_data_p->uint8_size = client_source_size;
+      client_source_data_p->uint8_offset = (uint32_t) (message_size
+                                            - sizeof (jerry_debugger_receive_client_source_first_t));
+
+      lit_utf8_byte_t *client_source_string_p = (lit_utf8_byte_t *) (client_source_data_p + 1);
+      memcpy (client_source_string_p,
+              (lit_utf8_byte_t *) (client_source_first_p + 1),
+              message_size - sizeof (jerry_debugger_receive_client_source_first_t));
+
+      *message_data_p = client_source_data_p;
+
+      if (client_source_data_p->uint8_size != client_source_data_p->uint8_offset)
+      {
+        *expected_message_type_p = JERRY_DEBUGGER_CLIENT_SOURCE_PART;
+      }
+      else
+      {
+        JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags)
+                                         & ~JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
+        *resume_exec_p = true;
+      }
       return true;
     }
 
@@ -545,9 +609,17 @@ jerry_debugger_breakpoint_hit (uint8_t message_type) /**< message type */
 
   JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_BREAKPOINT_MODE);
 
-  while (!jerry_debugger_receive ())
+  jerry_debugger_uint8_data_t *uint8_data = NULL;
+
+  while (!jerry_debugger_receive (&uint8_data))
   {
-    jerry_debugger_sleep (JERRY_DEBUGGER_TIMEOUT);
+    jerry_debugger_sleep ();
+  }
+
+  if (uint8_data != NULL)
+  {
+    jmem_heap_free_block (uint8_data,
+                          uint8_data->uint8_size + sizeof (jerry_debugger_uint8_data_t));
   }
 
   JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) & ~JERRY_DEBUGGER_BREAKPOINT_MODE);
@@ -631,6 +703,7 @@ jerry_debugger_send_data (jerry_debugger_header_type_t type, /**< message type *
  */
 bool
 jerry_debugger_send_string (uint8_t message_type, /**< message type */
+                            uint8_t sub_type, /**< subtype of the string */
                             const uint8_t *string_p, /**< string data */
                             size_t string_length) /**< length of string */
 {
@@ -657,10 +730,19 @@ jerry_debugger_send_string (uint8_t message_type, /**< message type */
     string_p += max_fragment_len;
   }
 
+  if (sub_type != JERRY_DEBUGGER_NO_SUBTYPE)
+  {
+    string_length += 1;
+  }
+
   JERRY_DEBUGGER_SET_SEND_MESSAGE_SIZE (message_string_p, 1 + string_length);
   message_string_p->type = (uint8_t) (message_type + 1);
 
   memcpy (message_string_p->string, string_p, string_length);
+  if (sub_type != JERRY_DEBUGGER_NO_SUBTYPE)
+  {
+    message_string_p->string[string_length - 1] = sub_type;
+  }
 
   return jerry_debugger_send (sizeof (jerry_debugger_send_type_t) + string_length);
 } /* jerry_debugger_send_string */
@@ -889,6 +971,7 @@ jerry_debugger_send_exception_string (ecma_value_t exception_value) /**< error v
   ECMA_STRING_TO_UTF8_STRING (string_p, string_data_p, string_size);
 
   bool result = jerry_debugger_send_string (JERRY_DEBUGGER_EXCEPTION_STR,
+                                            JERRY_DEBUGGER_NO_SUBTYPE,
                                             string_data_p,
                                             string_size);
 

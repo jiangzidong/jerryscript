@@ -35,6 +35,7 @@ textarea {
   <div>
 </div>
 <script>
+// Messages sent by the server to client.
 var JERRY_DEBUGGER_CONFIGURATION = 1;
 var JERRY_DEBUGGER_PARSE_ERROR = 2;
 var JERRY_DEBUGGER_BYTE_CODE_CP = 3;
@@ -57,20 +58,25 @@ var JERRY_DEBUGGER_BACKTRACE = 19;
 var JERRY_DEBUGGER_BACKTRACE_END = 20;
 var JERRY_DEBUGGER_EVAL_RESULT = 21;
 var JERRY_DEBUGGER_EVAL_RESULT_END = 22;
-var JERRY_DEBUGGER_EVAL_ERROR = 23;
-var JERRY_DEBUGGER_EVAL_ERROR_END = 24;
 
+// Subtypes of eval
+var JERRY_DEBUGGER_EVAL_OK = 1;
+var JERRY_DEBUGGER_EVAL_ERROR = 2;
+
+// Messages sent by the client to server.
 var JERRY_DEBUGGER_FREE_BYTE_CODE_CP = 1;
 var JERRY_DEBUGGER_UPDATE_BREAKPOINT = 2;
 var JERRY_DEBUGGER_EXCEPTION_CONFIG = 3;
 var JERRY_DEBUGGER_MEMSTATS = 4;
 var JERRY_DEBUGGER_STOP = 5;
-var JERRY_DEBUGGER_CONTINUE = 6;
-var JERRY_DEBUGGER_STEP = 7;
-var JERRY_DEBUGGER_NEXT = 8;
-var JERRY_DEBUGGER_GET_BACKTRACE = 9;
-var JERRY_DEBUGGER_EVAL = 10;
-var JERRY_DEBUGGER_EVAL_PART = 11;
+var JERRY_DEBUGGER_CLIENT_SOURCE = 6;
+var JERRY_DEBUGGER_CLIENT_SOURCE_PART = 7;
+var JERRY_DEBUGGER_CONTINUE = 8;
+var JERRY_DEBUGGER_STEP = 9;
+var JERRY_DEBUGGER_NEXT = 10;
+var JERRY_DEBUGGER_GET_BACKTRACE = 11;
+var JERRY_DEBUGGER_EVAL = 12;
+var JERRY_DEBUGGER_EVAL_PART = 13;
 
 var textBox = document.getElementById("log");
 var commandBox = document.getElementById("command");
@@ -116,6 +122,7 @@ function DebuggerClient(address)
   var backtraceFrame = 0;
   var evalResult = null;
   var exceptionData = null;
+  var display = 0;
 
   function assert(expr)
   {
@@ -689,7 +696,7 @@ function DebuggerClient(address)
             return;
           }
 
-          func.source = source;
+          func.source = source.split(/\r\n|[\r\n]/);
           func.sourceName = sourceName;
           break;
         }
@@ -852,6 +859,11 @@ function DebuggerClient(address)
                   + (breakpoint.at ? "at " : "around ")
                   + breakpointInfo
                   + breakpointToString(breakpoint));
+
+        if (debuggerObj.display)
+        {
+          debuggerObj.printSource(debuggerObj.display);
+        }
         return;
       }
 
@@ -888,19 +900,18 @@ function DebuggerClient(address)
 
       case JERRY_DEBUGGER_EVAL_RESULT:
       case JERRY_DEBUGGER_EVAL_RESULT_END:
-      case JERRY_DEBUGGER_EVAL_ERROR:
-      case JERRY_DEBUGGER_EVAL_ERROR_END:
       {
         evalResult = concatUint8Arrays(evalResult, message);
-
-        if (message[0] == JERRY_DEBUGGER_EVAL_RESULT_END)
+        var subType = evalResult[evalResult.length - 1];
+        evalResult = evalResult.slice(0, -1);
+        if (subType == JERRY_DEBUGGER_EVAL_OK)
         {
           appendLog(cesu8ToString(evalResult));
           evalResult = null;
           return;
         }
 
-        if (message[0] == JERRY_DEBUGGER_EVAL_ERROR_END)
+        if (subType == JERRY_DEBUGGER_EVAL_ERROR)
         {
           appendLog("Uncaught exception: " + cesu8ToString(evalResult));
           evalResult = null;
@@ -1161,11 +1172,57 @@ function DebuggerClient(address)
     }
   }
 
-  this.printSource = function()
+  this.printSource = function(line_num)
   {
-    if (lastBreakpointHit)
+    if (!lastBreakpointHit)
+      return;
+
+    lines = lastBreakpointHit.func.source;
+    if (line_num === 0)
     {
-      appendLog(lastBreakpointHit.func.source);
+      var start = 0;
+      var end = lastBreakpointHit.func.source.length - 1;
+    }
+    else
+    {
+      var start = Math.max(lastBreakpointHit.line - line_num, 0)
+      var end = Math.min(lastBreakpointHit.line + line_num - 1,
+                         lastBreakpointHit.func.source.length - 1)
+    }
+
+    if (lastBreakpointHit.func.sourceName)
+      appendLog("Source: " + lastBreakpointHit.func.sourceName);
+
+    for (i = start; i < end; i++)
+    {
+      var str = (i + 1).toString();
+      while (str.length < 4)
+      {
+        str = " " + str;
+      }
+
+      if (i == lastBreakpointHit.line - 1)
+      {
+        appendLog(str + " > " + lines[i]);
+      }
+      else
+      {
+        appendLog(str + "   " + lines[i]);
+      }
+    }
+  }
+
+  this.srcCheckArgs = function(line_num)
+  {
+    line_num = parseInt(line_num);
+    if (isNaN(line_num) || line_num < 0)
+    {
+      appendLog("Non-negative integer number expected");
+      return -1;
+    }
+    else
+    {
+      return line_num;
     }
   }
 
@@ -1365,8 +1422,34 @@ function debuggerCommand(event)
       debuggerObj.sendExceptionConfig(args[2]);
       break;
 
+    case "source":
     case "src":
-      debuggerObj.printSource();
+      if (!args[2])
+      {
+        debuggerObj.printSource(3);
+        break;
+      }
+      var line_num = debuggerObj.srcCheckArgs(args[2]);
+      if (line_num >= 0)
+      {
+        debuggerObj.printSource(line_num);
+        break;
+      }
+      break;
+
+    case "display":
+      if (!args[2])
+      {
+        appendLog("Non-negative integer number expected,\
+                  0 turns off the automatic source code display");
+        break;
+      }
+      var line_num = debuggerObj.srcCheckArgs(args[2]);
+      if (line_num >= 0)
+      {
+        debuggerObj.display = line_num;
+        break;
+      }
       break;
 
     case "list":

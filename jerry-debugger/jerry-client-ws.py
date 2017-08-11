@@ -48,8 +48,10 @@ JERRY_DEBUGGER_BACKTRACE = 19
 JERRY_DEBUGGER_BACKTRACE_END = 20
 JERRY_DEBUGGER_EVAL_RESULT = 21
 JERRY_DEBUGGER_EVAL_RESULT_END = 22
-JERRY_DEBUGGER_EVAL_ERROR = 23
-JERRY_DEBUGGER_EVAL_ERROR_END = 24
+
+# Subtypes of eval
+JERRY_DEBUGGER_EVAL_OK = 1
+JERRY_DEBUGGER_EVAL_ERROR = 2
 
 
 # Messages sent by the client to server.
@@ -58,12 +60,14 @@ JERRY_DEBUGGER_UPDATE_BREAKPOINT = 2
 JERRY_DEBUGGER_EXCEPTION_CONFIG = 3
 JERRY_DEBUGGER_MEMSTATS = 4
 JERRY_DEBUGGER_STOP = 5
-JERRY_DEBUGGER_CONTINUE = 6
-JERRY_DEBUGGER_STEP = 7
-JERRY_DEBUGGER_NEXT = 8
-JERRY_DEBUGGER_GET_BACKTRACE = 9
-JERRY_DEBUGGER_EVAL = 10
-JERRY_DEBUGGER_EVAL_PART = 11
+JERRY_DEBUGGER_CLIENT_SOURCE = 6
+JERRY_DEBUGGER_CLIENT_SOURCE_PART = 7
+JERRY_DEBUGGER_CONTINUE = 8
+JERRY_DEBUGGER_STEP = 9
+JERRY_DEBUGGER_NEXT = 10
+JERRY_DEBUGGER_GET_BACKTRACE = 11
+JERRY_DEBUGGER_EVAL = 12
+JERRY_DEBUGGER_EVAL_PART = 13
 
 MAX_BUFFER_SIZE = 128
 WEBSOCKET_BINARY_FRAME = 2
@@ -85,6 +89,8 @@ def arguments_parse():
                         help="set display range")
     parser.add_argument("--exception", action="store", default=None, type=int, choices=[0, 1],
                         help="set exception config, usage 1: [Enable] or 0: [Disable]")
+    parser.add_argument("--client-source", action="store", default=None, type=str,
+                        help="specify a javascript source file to execute")
 
     args = parser.parse_args()
 
@@ -345,7 +351,7 @@ class DebuggerPrompt(Cmd):
 
         pprint(self.debugger.function_list)
 
-    def eval_string(self, args):
+    def send_string(self, args, message_type):
         size = len(args)
         if size == 0:
             return
@@ -359,7 +365,7 @@ class DebuggerPrompt(Cmd):
                               WEBSOCKET_BINARY_FRAME | WEBSOCKET_FIN_BIT,
                               WEBSOCKET_FIN_BIT + max_fragment + message_header,
                               0,
-                              JERRY_DEBUGGER_EVAL,
+                              message_type,
                               size)
 
         if size == max_fragment:
@@ -369,6 +375,11 @@ class DebuggerPrompt(Cmd):
 
         self.debugger.send_message(message + args[0:max_fragment])
         offset = max_fragment
+
+        if message_type == JERRY_DEBUGGER_EVAL:
+            message_type = JERRY_DEBUGGER_EVAL_PART
+        else:
+            message_type = JERRY_DEBUGGER_CLIENT_SOURCE_PART
 
         # 1: length of type byte
         message_header = 1
@@ -381,7 +392,7 @@ class DebuggerPrompt(Cmd):
                                   WEBSOCKET_BINARY_FRAME | WEBSOCKET_FIN_BIT,
                                   WEBSOCKET_FIN_BIT + next_fragment + message_header,
                                   0,
-                                  JERRY_DEBUGGER_EVAL_PART)
+                                  message_type)
 
             prev_offset = offset
             offset += next_fragment
@@ -391,7 +402,7 @@ class DebuggerPrompt(Cmd):
 
     def do_eval(self, args):
         """ Evaluate JavaScript source code """
-        self.eval_string(args)
+        self.send_string(args, JERRY_DEBUGGER_EVAL)
 
     do_e = do_eval
 
@@ -419,6 +430,16 @@ class DebuggerPrompt(Cmd):
         return
 
     do_ms = do_memstats
+
+    def send_client_source(self, args):
+        """ Send and execute the specified Javascript source file to the debugger """
+        if not args.lower().endswith('.js'):
+            sys.exit("Error: Javascript file expected!")
+            return
+
+        with open(args, 'r') as f:
+            content = args + "\0" + f.read()
+            self.send_string(content, JERRY_DEBUGGER_CLIENT_SOURCE)
 
 class Multimap(object):
 
@@ -941,6 +962,9 @@ def main():
     if args.exception is not None:
         prompt.do_exception(str(args.exception))
 
+    if args.client_source is not None:
+        prompt.send_client_source(str(args.client_source))
+
     while True:
         if not non_interactive and prompt.cont:
             if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
@@ -1042,17 +1066,16 @@ def main():
             prompt.cmdloop()
 
         elif buffer_type in [JERRY_DEBUGGER_EVAL_RESULT,
-                             JERRY_DEBUGGER_EVAL_RESULT_END,
-                             JERRY_DEBUGGER_EVAL_ERROR,
-                             JERRY_DEBUGGER_EVAL_ERROR_END]:
+                             JERRY_DEBUGGER_EVAL_RESULT_END]:
 
             message = b""
             eval_type = buffer_type
             while True:
                 message += data[3:]
 
-                if buffer_type in [JERRY_DEBUGGER_EVAL_RESULT_END,
-                                   JERRY_DEBUGGER_EVAL_ERROR_END]:
+                if buffer_type == JERRY_DEBUGGER_EVAL_RESULT_END:
+                    subtype = ord(message[-1])
+                    message = message[:-1]
                     break
 
                 data = debugger.get_message(True)
@@ -1063,7 +1086,7 @@ def main():
                                        eval_type + 1]:
                     raise Exception("Eval result expected")
 
-            if buffer_type == JERRY_DEBUGGER_EVAL_ERROR_END:
+            if subtype == JERRY_DEBUGGER_EVAL_ERROR:
                 print("Uncaught exception: %s" % (message))
             else:
                 print(message)

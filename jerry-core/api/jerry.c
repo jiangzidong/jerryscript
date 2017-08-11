@@ -33,6 +33,7 @@
 #include "ecma-promise-object.h"
 #include "jcontext.h"
 #include "jerryscript.h"
+#include "jmem.h"
 #include "js-parser.h"
 #include "re-compiler.h"
 
@@ -255,6 +256,39 @@ jerry_gc (void)
 } /* jerry_gc */
 
 /**
+ * Get heap memory stats.
+ *
+ * @return true - get the heap stats successful
+ *         false - otherwise. Usually it is because the MEM_STATS feature is not enabled.
+ */
+bool
+jerry_get_memory_stats (jerry_heap_stats_t *out_stats_p) /**< [out] heap memory stats */
+{
+#ifdef JMEM_STATS
+  if (out_stats_p == NULL)
+  {
+    return false;
+  }
+
+  jmem_heap_stats_t jmem_heap_stats = {0};
+  jmem_heap_get_stats (&jmem_heap_stats);
+
+  *out_stats_p = (jerry_heap_stats_t)
+  {
+    .version = 1,
+    .size = jmem_heap_stats.size,
+    .allocated_bytes = jmem_heap_stats.allocated_bytes,
+    .peak_allocated_bytes = jmem_heap_stats.peak_allocated_bytes
+  };
+
+  return true;
+#else
+  JERRY_UNUSED (out_stats_p);
+  return false;
+#endif
+} /* jerry_get_memory_stats */
+
+/**
  * Simple Jerry runner
  *
  * @return true  - if run was successful
@@ -355,7 +389,10 @@ jerry_parse_named_resource (const jerry_char_t *name_p, /**< name (usually a fil
 #ifdef JERRY_DEBUGGER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
-    jerry_debugger_send_string (JERRY_DEBUGGER_SOURCE_CODE_NAME, name_p, name_length);
+    jerry_debugger_send_string (JERRY_DEBUGGER_SOURCE_CODE_NAME,
+                                JERRY_DEBUGGER_NO_SUBTYPE,
+                                name_p,
+                                name_length);
   }
 #else /* JERRY_DEBUGGER */
   JERRY_UNUSED (name_p);
