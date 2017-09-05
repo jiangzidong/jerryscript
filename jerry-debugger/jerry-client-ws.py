@@ -48,10 +48,18 @@ JERRY_DEBUGGER_BACKTRACE = 19
 JERRY_DEBUGGER_BACKTRACE_END = 20
 JERRY_DEBUGGER_EVAL_RESULT = 21
 JERRY_DEBUGGER_EVAL_RESULT_END = 22
+JERRY_DEBUGGER_WAIT_FOR_SOURCE = 23
+JERRY_DEBUGGER_OUTPUT_RESULT = 24
+JERRY_DEBUGGER_OUTPUT_RESULT_END = 25
 
 # Subtypes of eval
 JERRY_DEBUGGER_EVAL_OK = 1
 JERRY_DEBUGGER_EVAL_ERROR = 2
+
+# Subtypes of output
+JERRY_DEBUGGER_OUTPUT_OK = 1
+JERRY_DEBUGGER_OUTPUT_WARNING = 2
+JERRY_DEBUGGER_OUTPUT_ERROR = 3
 
 
 # Messages sent by the client to server.
@@ -62,12 +70,13 @@ JERRY_DEBUGGER_MEMSTATS = 4
 JERRY_DEBUGGER_STOP = 5
 JERRY_DEBUGGER_CLIENT_SOURCE = 6
 JERRY_DEBUGGER_CLIENT_SOURCE_PART = 7
-JERRY_DEBUGGER_CONTINUE = 8
-JERRY_DEBUGGER_STEP = 9
-JERRY_DEBUGGER_NEXT = 10
-JERRY_DEBUGGER_GET_BACKTRACE = 11
-JERRY_DEBUGGER_EVAL = 12
-JERRY_DEBUGGER_EVAL_PART = 13
+JERRY_DEBUGGER_NO_MORE_SOURCES = 8
+JERRY_DEBUGGER_CONTINUE = 9
+JERRY_DEBUGGER_STEP = 10
+JERRY_DEBUGGER_NEXT = 11
+JERRY_DEBUGGER_GET_BACKTRACE = 12
+JERRY_DEBUGGER_EVAL = 13
+JERRY_DEBUGGER_EVAL_PART = 14
 
 MAX_BUFFER_SIZE = 128
 WEBSOCKET_BINARY_FRAME = 2
@@ -89,7 +98,7 @@ def arguments_parse():
                         help="set display range")
     parser.add_argument("--exception", action="store", default=None, type=int, choices=[0, 1],
                         help="set exception config, usage 1: [Enable] or 0: [Disable]")
-    parser.add_argument("--client-source", action="store", default=None, type=str,
+    parser.add_argument("--client-source", action="store", default=[], type=str, nargs="+",
                         help="specify a javascript source file to execute")
 
     args = parser.parse_args()
@@ -181,6 +190,7 @@ class DebuggerPrompt(Cmd):
         self.quit = False
         self.cont = True
         self.non_interactive = False
+        self.client_sources = []
 
     def precmd(self, line):
         self.stop = False
@@ -431,15 +441,27 @@ class DebuggerPrompt(Cmd):
 
     do_ms = do_memstats
 
-    def send_client_source(self, args):
-        """ Send and execute the specified Javascript source file to the debugger """
-        if not args.lower().endswith('.js'):
+    def store_client_sources(self, args):
+        self.client_sources = args
+
+    def send_client_source(self):
+        # Send no more source message if there is no source
+        if not self.client_sources:
+            self.send_no_more_source()
+            return
+
+        path = self.client_sources.pop(0)
+        if not path.lower().endswith('.js'):
             sys.exit("Error: Javascript file expected!")
             return
 
-        with open(args, 'r') as f:
-            content = args + "\0" + f.read()
+        with open(path, 'r') as f:
+            content = path + "\0" + f.read()
             self.send_string(content, JERRY_DEBUGGER_CLIENT_SOURCE)
+
+    def send_no_more_source(self):
+        self.exec_command("", JERRY_DEBUGGER_NO_MORE_SOURCES)
+        self.cont = True
 
 class Multimap(object):
 
@@ -496,6 +518,7 @@ class JerryDebugger(object):
         self.yellow = ''
         self.green_bg = ''
         self.yellow_bg = ''
+        self.blue = ''
         self.nocolor = ''
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((self.host, self.port))
@@ -643,6 +666,7 @@ class JerryDebugger(object):
         self.yellow = '\033[93m'
         self.green_bg = '\033[42m'
         self.yellow_bg = '\033[43m'
+        self.blue = '\033[94m'
 
     def get_message(self, blocking):
         # Connection was closed
@@ -963,7 +987,7 @@ def main():
         prompt.do_exception(str(args.exception))
 
     if args.client_source is not None:
-        prompt.send_client_source(str(args.client_source))
+        prompt.store_client_sources(args.client_source)
 
     while True:
         if not non_interactive and prompt.cont:
@@ -1065,33 +1089,47 @@ def main():
 
             prompt.cmdloop()
 
+
         elif buffer_type in [JERRY_DEBUGGER_EVAL_RESULT,
-                             JERRY_DEBUGGER_EVAL_RESULT_END]:
-
+                             JERRY_DEBUGGER_EVAL_RESULT_END,
+                             JERRY_DEBUGGER_OUTPUT_RESULT,
+                             JERRY_DEBUGGER_OUTPUT_RESULT_END]:
             message = b""
-            eval_type = buffer_type
+            msg_type = buffer_type
             while True:
-                message += data[3:]
-
-                if buffer_type == JERRY_DEBUGGER_EVAL_RESULT_END:
-                    subtype = ord(message[-1])
-                    message = message[:-1]
+                if buffer_type in [JERRY_DEBUGGER_EVAL_RESULT_END,
+                                   JERRY_DEBUGGER_OUTPUT_RESULT_END]:
+                    subtype = ord(data[-1])
+                    message += data[3:-1]
                     break
+                else:
+                    message += data[3:]
 
                 data = debugger.get_message(True)
                 buffer_type = ord(data[2])
                 buffer_size = ord(data[1]) - 1
+                # Checks if the next frame would be an invalid data frame.
+                # If it is not the message type, or the end type of it, an exception is thrown.
+                if buffer_type not in [msg_type, msg_type + 1]:
+                    raise Exception("Invalid data caught")
 
-                if buffer_type not in [eval_type,
-                                       eval_type + 1]:
-                    raise Exception("Eval result expected")
+            # Subtypes of output
+            if buffer_type == JERRY_DEBUGGER_OUTPUT_RESULT_END:
+                if subtype == JERRY_DEBUGGER_OUTPUT_OK:
+                    print("%sout: %s%s" % (debugger.blue, debugger.nocolor, message))
+                elif subtype == JERRY_DEBUGGER_OUTPUT_WARNING:
+                    print("%swarning: %s%s" % (debugger.yellow, debugger.nocolor, message))
+                elif subtype == JERRY_DEBUGGER_OUTPUT_ERROR:
+                    print("%serr: %s%s" % (debugger.red, debugger.nocolor, message))
 
-            if subtype == JERRY_DEBUGGER_EVAL_ERROR:
-                print("Uncaught exception: %s" % (message))
-            else:
-                print(message)
+            # Subtypes of eval
+            elif buffer_type == JERRY_DEBUGGER_EVAL_RESULT_END:
+                if subtype == JERRY_DEBUGGER_EVAL_ERROR:
+                    print("Uncaught exception: %s" % (message))
+                else:
+                    print(message)
 
-            prompt.cmdloop()
+                prompt.cmdloop()
 
         elif buffer_type == JERRY_DEBUGGER_MEMSTATS_RECEIVE:
 
@@ -1105,6 +1143,10 @@ def main():
             print("Property bytes: %d" % (memory_stats[4]))
 
             prompt.cmdloop()
+
+        elif buffer_type == JERRY_DEBUGGER_WAIT_FOR_SOURCE:
+            prompt.send_client_source()
+
 
         else:
             raise Exception("Unknown message")

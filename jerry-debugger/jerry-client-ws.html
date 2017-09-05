@@ -58,10 +58,18 @@ var JERRY_DEBUGGER_BACKTRACE = 19;
 var JERRY_DEBUGGER_BACKTRACE_END = 20;
 var JERRY_DEBUGGER_EVAL_RESULT = 21;
 var JERRY_DEBUGGER_EVAL_RESULT_END = 22;
+var JERRY_DEBUGGER_WAIT_FOR_SOURCE = 23;
+var JERRY_DEBUGGER_OUTPUT_RESULT = 24;
+var JERRY_DEBUGGER_OUTPUT_RESULT_END = 25;
 
 // Subtypes of eval
 var JERRY_DEBUGGER_EVAL_OK = 1;
 var JERRY_DEBUGGER_EVAL_ERROR = 2;
+
+// Subtypes of output result
+var JERRY_DEBUGGER_OUTPUT_OK = 1;
+var JERRY_DEBUGGER_OUTPUT_WARNING = 2;
+var JERRY_DEBUGGER_OUTPUT_ERROR = 3;
 
 // Messages sent by the client to server.
 var JERRY_DEBUGGER_FREE_BYTE_CODE_CP = 1;
@@ -71,12 +79,13 @@ var JERRY_DEBUGGER_MEMSTATS = 4;
 var JERRY_DEBUGGER_STOP = 5;
 var JERRY_DEBUGGER_CLIENT_SOURCE = 6;
 var JERRY_DEBUGGER_CLIENT_SOURCE_PART = 7;
-var JERRY_DEBUGGER_CONTINUE = 8;
-var JERRY_DEBUGGER_STEP = 9;
-var JERRY_DEBUGGER_NEXT = 10;
-var JERRY_DEBUGGER_GET_BACKTRACE = 11;
-var JERRY_DEBUGGER_EVAL = 12;
-var JERRY_DEBUGGER_EVAL_PART = 13;
+var JERRY_DEBUGGER_NO_MORE_SOURCES = 8;
+var JERRY_DEBUGGER_CONTINUE = 9;
+var JERRY_DEBUGGER_STEP = 10;
+var JERRY_DEBUGGER_NEXT = 11;
+var JERRY_DEBUGGER_GET_BACKTRACE = 12;
+var JERRY_DEBUGGER_EVAL = 13;
+var JERRY_DEBUGGER_EVAL_PART = 14;
 
 var textBox = document.getElementById("log");
 var commandBox = document.getElementById("command");
@@ -121,6 +130,7 @@ function DebuggerClient(address)
   var pendingBreakpoints = [ ];
   var backtraceFrame = 0;
   var evalResult = null;
+  var outputResult = null;
   var exceptionData = null;
   var display = 0;
 
@@ -918,6 +928,42 @@ function DebuggerClient(address)
           return;
         }
 
+        return;
+      }
+      case JERRY_DEBUGGER_OUTPUT_RESULT:
+      case JERRY_DEBUGGER_OUTPUT_RESULT_END:
+      {
+        outputResult = concatUint8Arrays(outputResult, message);
+
+        if (message[0] == JERRY_DEBUGGER_OUTPUT_RESULT_END)
+        {
+          var subType = outputResult[outputResult.length - 1];
+          var outString;
+          outputResult = outputResult.slice(0, -1);
+
+          switch (subType)
+          {
+            case JERRY_DEBUGGER_OUTPUT_OK:
+              outString = "out: " + cesu8ToString(outputResult);
+              break;
+            case JERRY_DEBUGGER_OUTPUT_WARNING:
+              outString = "warning: " + cesu8ToString(outputResult);
+              break;
+            case JERRY_DEBUGGER_OUTPUT_ERROR:
+              outString = "err: " + cesu8ToString(outputResult);
+              break;
+          }
+
+          appendLog(outString);
+          outputResult = null;
+        }
+        
+        return;
+      }
+
+      case JERRY_DEBUGGER_WAIT_FOR_SOURCE:
+      {
+        // This message does not have effect in this client.
         return;
       }
 
