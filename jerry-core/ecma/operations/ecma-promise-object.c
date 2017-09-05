@@ -218,7 +218,6 @@ ecma_promise_reject_handler (const ecma_value_t function, /**< the function itse
                              const ecma_length_t argc) /**< argument number */
 {
   JERRY_UNUSED (this);
-  JERRY_UNUSED (argc);
 
   ecma_string_t str_promise;
   ecma_string_t str_already_resolved;
@@ -242,8 +241,16 @@ ecma_promise_reject_handler (const ecma_value_t function, /**< the function itse
 
   /* 5. */
   ecma_set_already_resolved_value (already_resolved, true);
+
   /* 6. */
-  ecma_reject_promise (promise, argv[0]);
+  if (argc == 0)
+  {
+    ecma_reject_promise (promise, ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED));
+  }
+  else
+  {
+    ecma_reject_promise (promise, argv[0]);
+  }
   ecma_free_value (promise);
   ecma_free_value (already_resolved);
   return ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED);
@@ -263,7 +270,6 @@ ecma_promise_resolve_handler (const ecma_value_t function, /**< the function its
                               const ecma_length_t argc) /**< argument number */
 {
   JERRY_UNUSED (this);
-  JERRY_UNUSED (argc);
 
   ecma_string_t str_promise;
   ecma_string_t str_already_resolved;
@@ -285,6 +291,13 @@ ecma_promise_resolve_handler (const ecma_value_t function, /**< the function its
 
   /* 5. */
   ecma_set_already_resolved_value (already_resolved, true);
+
+  /* If the argc is 0, then fulfill  the `undefined`. */
+  if (argc == 0)
+  {
+    ecma_fulfill_promise (promise, ecma_make_simple_value (ECMA_SIMPLE_VALUE_UNDEFINED));
+    goto end_of_resolve_function;
+  }
 
   /* 6. */
   if (argv[0] == promise)
