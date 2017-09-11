@@ -243,6 +243,16 @@ bool jerry_value_is_undefined(const jerry_value_t value) {
   return JERRY_VALUE_HAS_TYPE(value, 'undefined');
 }
 
+bool
+jerry_value_is_promise (const jerry_value_t value)
+{
+  EM_ASM({
+             console.warn('jerry_value_is_promise() is not yet implemented');
+         });
+  JERRY_UNUSED (value);
+  return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Jerry Value Getter Functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -578,6 +588,13 @@ jerry_value_t jerry_create_undefined(void) {
   });
 }
 
+jerry_value_t jerry_create_promise (void) {
+  EM_ASM({
+             console.warn('jerry_set_vm_exec_stop_callback() is not implemented, ignoring the call.');
+         });
+  return jerry_create_undefined ();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // General API Functions of JS Objects
 ////////////////////////////////////////////////////////////////////////////////
@@ -635,6 +652,16 @@ bool jerry_delete_property(const jerry_value_t obj_val,
       }
       return true;
     }, obj_val, prop_name_val);
+}
+
+bool jerry_delete_property_by_index (const jerry_value_t obj_val, uint32_t index)
+{
+  EM_ASM({
+             console.warn('jerry_delete_property_by_index() is not yet implemented.');
+  });
+  JERRY_UNUSED (obj_val);
+  JERRY_UNUSED (index);
+  return false;
 }
 
 jerry_value_t jerry_get_property(const jerry_value_t obj_val,
@@ -1157,6 +1184,17 @@ jerry_foreach_object_property (const jerry_value_t obj_val, /**< object value */
   }, obj_val, foreach_p, user_data_p);
 } /* jerry_foreach_object_property */
 
+jerry_value_t jerry_resolve_or_reject_promise (jerry_value_t promise, jerry_value_t argument, bool is_resolve)
+{
+  EM_ASM({
+             console.warn('jerry_resolve_or_reject_promise() is not yet implemented');
+         });
+  JERRY_UNUSED (promise);
+  JERRY_UNUSED (argument);
+  JERRY_UNUSED (is_resolve);
+  return jerry_create_undefined ();
+}
+
 static void __attribute__((used))
 _jerry_call_native_object_free_callbacks(const jerry_object_native_info_t *native_info_p,
                                          void *native_pointer_p,
@@ -1290,6 +1328,16 @@ void jerry_init(jerry_init_flag_t flags) {
 }
 
 void jerry_cleanup(void) {
+}
+
+void *
+jerry_get_context_data (const jerry_context_data_manager_t *manager_p)
+{
+  EM_ASM({
+             console.warn('jerry_get_context_data() is not yet implemented.');
+         });
+  JERRY_UNUSED (manager_p);
+  return NULL;
 }
 
 bool jerry_is_feature_enabled (const jerry_feature_t feature)
