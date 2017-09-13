@@ -39,15 +39,15 @@
 
 var Module = {
   preRun: function() {
-    if (typeof(process) === 'undefined') {
-      throw new Error('Make sure to run this code in Node.js');
+    if (typeof(process) === 'object') {
+      // When running in Node.js hook up the stdin:
+      var nodeStdinCallback = process.stdin.read.bind(process.stdin);
+      var stdin = function() {
+        console.log('stdin called');
+        return null;
+      };
+      FS.init(stdin);
     }
-    var nodeStdinCallback = process.stdin.read.bind(process.stdin);
-    var stdin = function() {
-      console.log('stdin called');
-      return null;
-    };
-    FS.init(stdin);
   },
 
   // Derived from https://github.com/kripken/emscripten/blob/13aa71b5fcbbf7978a05c4139060bdb5529cf55c/src/preamble.js#L603

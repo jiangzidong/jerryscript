@@ -290,6 +290,10 @@ if(UNITTESTS)
   endif()
 endif()
 
+if(EMSCRIPTEN_SIMULATED_JERRY_API AND NOT UNITTESTS AND NOT DOCTESTS)
+  add_subdirectory(targets/emx-demo)
+endif()
+
 # Doctests
 if(DOCTESTS AND NOT EMSCRIPTEN_SIMULATED_JERRY_API)
   add_subdirectory(tests/unit-doc)
