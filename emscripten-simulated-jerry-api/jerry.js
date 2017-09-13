@@ -78,6 +78,7 @@
     _getEntry: function (jerry_value) {
       var entry = this._jerryToHostValueMap[jerry_value];
       if (!entry) {
+        console.log(new Error('Entry at ' + jerry_value + ' does not exist').stack);
         throw new Error('Entry at ' + jerry_value + ' does not exist');
       }
       return entry;

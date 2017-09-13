@@ -286,7 +286,7 @@ if(UNITTESTS)
     add_subdirectory(tests/unit-libm)
   endif()
   if(JERRY_EXT)
-    #add_subdirectory(tests/unit-ext)
+    add_subdirectory(tests/unit-ext)
   endif()
 endif()
 

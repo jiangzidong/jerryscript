@@ -15,7 +15,13 @@
 
 cmake_minimum_required (VERSION 2.8.12)
 set(JERRY_CORE_SIMULATOR_NAME jerry-core)
+set(JERRY_EXT_SIMULATOR_NAME jerry-ext)
+
 project (${JERRY_CORE_SIMULATOR_NAME} C)
+project (${JERRY_EXT_SIMULATOR_NAME} C)
+################################
+# Jerry-core
+###############################
 
 # Include directories
 set(INCLUDE_CORE
@@ -35,11 +41,14 @@ set(INCLUDE_CORE
         "${CMAKE_SOURCE_DIR}/jerry-core/parser/regexp"
         "${CMAKE_SOURCE_DIR}/jerry-core/vm")
 
+
 file(GLOB SOURCE_JERRY_EMSCRIPTEN_SIMULATOR *.c)
 file(GLOB SOURCE_PORT_FILES "${PORT_DIR}/*.c")
 
 # Include some of the actual C files of JerryScript:
-set(SOURCE_JERRY_ORIG_FILES ${CMAKE_SOURCE_DIR}/jerry-core/jrt/jrt-fatals.c)
+set(SOURCE_JERRY_ORIG_FILES
+    ${CMAKE_SOURCE_DIR}/jerry-core/jrt/jrt-fatals.c
+    ${CMAKE_SOURCE_DIR}/jerry-core/jcontext/jcontext.c)
 
 set(SOURCE_CORE ${SOURCE_JERRY_EMSCRIPTEN_SIMULATOR} ${SOURCE_PORT_FILES} ${SOURCE_JERRY_ORIG_FILES})
 
@@ -62,12 +71,16 @@ set(EMCC_LINK_FLAGS
     "--pre-js ${PRINT_JS}"
     "-s ERROR_ON_UNDEFINED_SYMBOLS=1"
     "-s SAFE_HEAP=1"
+    "-s FORCE_FILESYSTEM=1"
     "--memory-init-file 0")
 
 target_compile_definitions(${JERRY_CORE_SIMULATOR_NAME} PUBLIC ${DEFINES_JERRY})
 target_include_directories(${JERRY_CORE_SIMULATOR_NAME} PUBLIC ${INCLUDE_CORE})
-target_include_directories(${JERRY_CORE_SIMULATOR_NAME} PRIVATE ${INCLUDE_INTERNALS})
 target_link_libraries(${JERRY_CORE_SIMULATOR_NAME} ${EXTERNAL_LINK_LIBS} ${EMCC_LINK_FLAGS})
 
-install(TARGETS ${JERRY_CORE_SIMULATOR_NAME} DESTINATION lib)
-install(FILES "${INCLUDE_CORE}/jerry-api.h" "${INCLUDE_CORE}/jerry-port.h" DESTINATION include)
+set(JS_DEPENDS
+    ${MODULE_JS}
+    ${JERRY_JS}
+    ${PRINT_JS})
+set_property(TARGET ${JERRY_CORE_SIMULATOR_NAME} PROPERTY LINK_DEPENDS ${JS_DEPENDS})
+

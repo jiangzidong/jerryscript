@@ -66,7 +66,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
   - if [[ "$OPTS" == "--test262" ]]; then sudo timedatectl set-timezone America/Los_Angeles; fi
   - if [[ "$OPTS" == *"--check-pylint"* ]]; then pip install pylint==1.6.5; fi
-  - if [[ "$OPTS" == *"--emscripten-simulated-jerry-api"* ]]; then echo "TODO: install emscripten sdk dependency"; fi
+  - if [[ "$OPTS" == *"--emscripten-simulated-jerry-api"* ]]; then echo "TODO:\ install emscripten sdk dependency"; fi
 
 install:
 

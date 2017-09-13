@@ -283,7 +283,7 @@ static jerry_value_t
 test_validator_prop2_handler (const jerry_value_t func_obj_val __attribute__((unused)), /**< function object */
                               const jerry_value_t this_val __attribute__((unused)), /**< this value */
                               const jerry_value_t args_p[], /**< arguments list */
-                              const jerry_length_t args_cnt __attribute__((unused))) /**< arguments length */
+                              const jerry_length_t args_cnt) /**< arguments length */
 {
   bool native1 = false;
   double native2 = 0;
@@ -310,7 +310,7 @@ test_validator_prop2_handler (const jerry_value_t func_obj_val __attribute__((un
     jerryx_arg_object_properties (&prop_info, JERRYX_ARG_OPTIONAL),
   };
 
-  jerry_value_t is_ok = jerryx_arg_transform_args (args_p, 1, mapping, 1);
+  jerry_value_t is_ok = jerryx_arg_transform_args (args_p, args_cnt, mapping, 1);
 
 
   TEST_ASSERT (!jerry_value_has_error_flag (is_ok));

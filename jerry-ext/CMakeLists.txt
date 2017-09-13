@@ -16,6 +16,10 @@ cmake_minimum_required (VERSION 2.8.12)
 set(JERRY_EXT_NAME jerry-ext)
 project (${JERRY_EXT_NAME} C)
 
+if(NOT EMSCRIPTEN_SIMULATED_JERRY_API)
+    set(DEFINE_EXT, CONFIG_JERRYX_NATIVE_MODULE_DYNAMIC)
+endif()
+
 # Include directories
 set(INCLUDE_EXT "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
@@ -32,6 +36,7 @@ set(SOURCE_EXT
 add_library(${JERRY_EXT_NAME} STATIC ${SOURCE_EXT})
 
 target_include_directories(${JERRY_EXT_NAME} PUBLIC ${INCLUDE_EXT})
+target_compile_definitions(${JERRY_EXT_NAME} PUBLIC ${DEFINES_EXT})
 
 target_link_libraries(${JERRY_EXT_NAME} jerry-core)
 

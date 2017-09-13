@@ -24,7 +24,15 @@ if(${FEATURE_PROFILE} STREQUAL "${CMAKE_SOURCE_DIR}/jerry-core/profiles/minimal.
 endif()
 
 # Unit tests main modules that exercise the API:
-file(GLOB SOURCE_UNIT_TEST_MAIN_API_MODULES api/*.c)
+if(NOT EMSCRIPTEN_SIMULATED_JERRY_API)
+  file(GLOB SOURCE_UNIT_TEST_MAIN_API_MODULES api/*.c)
+else()
+  set(SOURCE_UNIT_TEST_MAIN_API_MODULES
+      api/test-api.c
+      api/test-context-data.c
+      api/test-has-property.c
+      )
+endif()
 
 # Unit tests main modules that exercise engine internals:
 if(NOT EMSCRIPTEN_SIMULATED_JERRY_API)

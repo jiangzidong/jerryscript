@@ -269,8 +269,6 @@ foreach (const jerry_value_t name, /**< field name */
 
   TEST_ASSERT (false);
   return false;
-
-
 } /* foreach */
 
 static bool
@@ -452,7 +450,7 @@ main (void)
   utf8_length = jerry_get_utf8_string_length (args[0]);
 
   cesu8_sz = jerry_get_string_size (args[0]);
-  utf8_sz =  jerry_get_utf8_string_size (args[0]);
+  utf8_sz = jerry_get_utf8_string_size (args[0]);
 
   TEST_ASSERT (cesu8_length == 10 && utf8_length == 8);
   TEST_ASSERT (cesu8_sz != utf8_sz);
@@ -507,7 +505,7 @@ main (void)
   utf8_length = jerry_get_utf8_string_length (args[0]);
 
   cesu8_sz = jerry_get_string_size (args[0]);
-  utf8_sz =  jerry_get_utf8_string_size (args[0]);
+  utf8_sz = jerry_get_utf8_string_size (args[0]);
 
   TEST_ASSERT (cesu8_length == 7 && utf8_length == 6);
   TEST_ASSERT (cesu8_sz != utf8_sz);
@@ -522,7 +520,7 @@ main (void)
   utf8_length = jerry_get_utf8_string_length (args[0]);
 
   cesu8_sz = jerry_get_string_size (args[0]);
-  utf8_sz =  jerry_get_utf8_string_size (args[0]);
+  utf8_sz = jerry_get_utf8_string_size (args[0]);
 
   TEST_ASSERT (cesu8_length == utf8_length);
   TEST_ASSERT (cesu8_length == 10);
@@ -1148,9 +1146,9 @@ main (void)
   char string_greek_zero_sign[cesu8_sz];
   jerry_string_to_char_buffer (args[1], (jerry_char_t *) string_greek_zero_sign, cesu8_sz);
 
-//  TEST_ASSERT (!strncmp (string_greek_zero_sign, "\xed\xa0\x80\xed\xb6\x8a", cesu8_sz));
-//  TEST_ASSERT (cesu8_length == 2);
-//  TEST_ASSERT (cesu8_sz == 6);
+  TEST_ASSERT (!strncmp (string_greek_zero_sign, "\xed\xa0\x80\xed\xb6\x8a", cesu8_sz));
+  TEST_ASSERT (cesu8_length == 2);
+  TEST_ASSERT (cesu8_sz == 6);
 
   jerry_release_value (args[1]);
 

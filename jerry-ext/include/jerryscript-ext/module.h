@@ -23,7 +23,7 @@
 #endif /* __GNUC__ */
 
 #ifdef JERRYX_NATIVE_MODULES_SUPPORTED
-#include "jerryscript-ext/section.impl.h"
+
 
 /**
  * Declare the signature for the module initialization function.
@@ -45,12 +45,26 @@ typedef struct
  * specially-named linker section "jerryx_modules" where the JerryScript module resolver
  * jerryx_module_native_resolver () will look for it.
  */
+#ifdef CONFIG_JERRYX_NATIVE_MODULE_DYNAMIC
+#include "jerryscript-ext/section.impl.h"
 #define JERRYX_NATIVE_MODULE(module_name, on_resolve_cb)                                 \
   static const jerryx_native_module_t _module JERRYX_SECTION_ATTRIBUTE(jerryx_modules) = \
   {                                                                                      \
     .name = ((jerry_char_t *) #module_name),                                             \
     .on_resolve = (on_resolve_cb)                                                        \
   };
+#else
+extern void jerryx_module_register_module (const jerryx_native_module_t *m);
+#define JERRYX_NATIVE_MODULE(module_name, on_resolve_cb)                                 \
+  static const jerryx_native_module_t _module =                                          \
+  {                                                                                      \
+    .name = ((jerry_char_t *) #module_name),                                             \
+    .on_resolve = (on_resolve_cb)                                                        \
+  };                                                                                     \
+  __attribute__((constructor)) static void _init_module(void) {                          \
+    jerryx_module_register_module(&_module);                                             \
+  }
+#endif
 
 /**
  * Declare the JerryScript module resolver so that it may be added to an array of jerryx_module_resolver_t items and

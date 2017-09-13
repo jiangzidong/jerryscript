@@ -71,10 +71,21 @@ static const jerry_context_data_manager_t jerryx_module_manager =
   .bytes_needed = sizeof (jerry_value_t)
 };
 
+#ifdef CONFIG_JERRYX_NATIVE_MODULE_DYNAMIC
 /**
  * Declare the linker section where module definitions are stored.
  */
 JERRYX_SECTION_DECLARE (jerryx_modules, jerryx_native_module_t)
+#else
+#define MAX_MODULES 10
+static uint32_t _module_cnt = 0;
+static const jerryx_native_module_t *_modules[MAX_MODULES];
+
+void jerryx_module_register_module (const jerryx_native_module_t *m)
+{
+  _modules[_module_cnt++] = m;
+} /* jerryx_module_register_module */
+#endif
 
 /**
  * Attempt to retrieve a module by name from a cache, and return false if not found.
@@ -145,14 +156,23 @@ bool
 jerryx_module_native_resolver (const jerry_char_t *name, /**< name of the module */
                                jerry_value_t *result) /**< [out] where to put the resulting module instance */
 {
-  int index;
-  const jerryx_native_module_t *module_p = NULL;
+  uint32_t index = 0;
 
-  /* Look for the module by its name in the list of module definitions. */
-  for (index = 0, module_p = &__start_jerryx_modules[0];
-       &__start_jerryx_modules[index] < __stop_jerryx_modules;
-       index++, module_p = &__start_jerryx_modules[index])
+  while (1)
   {
+#ifdef CONFIG_JERRYX_NATIVE_MODULE_DYNAMIC
+    if (&__start_jerryx_modules[index] >= __stop_jerryx_modules)
+    {
+      break;
+    }
+    const jerryx_native_module_t *module_p = &__start_jerryx_modules[index];
+#else
+    if (index >= _module_cnt)
+    {
+      break;
+    }
+    const jerryx_native_module_t *module_p = _modules[index];
+#endif
     if (module_p->name != NULL && !strcmp ((char *) module_p->name, (char *) name))
     {
       /* If we find the module by its name we load it and cache it if it has an on_resolve () and complain otherwise. */
@@ -160,8 +180,8 @@ jerryx_module_native_resolver (const jerry_char_t *name, /**< name of the module
                                           : jerryx_module_create_error (JERRY_ERROR_TYPE, on_resolve_absent, name));
       return true;
     }
+    index++;
   }
-
   return false;
 } /* jerryx_module_native_resolver */
 #endif /* JERRYX_NATIVE_MODULES_SUPPORTED */
