@@ -18,12 +18,20 @@
 
 #include "../test-common.h"
 
+/**
+ * Maximum size of snapshots buffer
+ */
+#define SNAPSHOT_BUFFER_SIZE (256)
 
 int
 main (void)
 {
   TEST_INIT ();
-
+  
+  jerry_value_t res;
+  jerry_size_t sz;
+  char buffer[32];
+  
   /* Dump / execute snapshot */
   if (jerry_is_feature_enabled (JERRY_FEATURE_SNAPSHOT_SAVE)
       && jerry_is_feature_enabled (JERRY_FEATURE_SNAPSHOT_EXEC))

@@ -28,6 +28,7 @@ foreach(SOURCE_UNIT_TEST_MAIN ${SOURCE_UNIT_TEST_LIBC_MAIN_MODULES})
   add_executable(${TARGET_NAME} ${SOURCE_UNIT_TEST_MAIN})
   set_property(TARGET ${TARGET_NAME}
                PROPERTY LINK_FLAGS "${LINKER_FLAGS_COMMON}")
+  target_link_libraries(${TARGET_NAME} jerry-core jerry-port-default-minimal)
 
   add_dependencies(unittests-libc ${TARGET_NAME})
 endforeach()
